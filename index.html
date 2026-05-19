@@ -1,0 +1,20 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>이동 중...</title>
+
+    <!-- 1. HTML Meta 태그 방식: 브라우저가 인식하여 0초 후에 해당 경로로 이동합니다. -->
+    <meta http-equiv="refresh" content="0; url=./pages/index.html">
+
+    <script>
+        // 2. JavaScript 방식: Meta 태그보다 우선순위가 높고 확실하게 페이지를 이동시킵니다.
+        window.location.href = "./pages/index.html";
+    </script>
+</head>
+<body>
+    <!-- 만약 사용자의 브라우저에서 스크립트와 리프레시가 모두 차단되었을 경우를 대비한 대체 텍스트입니다. -->
+    <p>페이지가 이동되지 않으면 <a href="./pages/index.html">여기</a>를 클릭해 주세요.</p>
+</body>
+</html>
