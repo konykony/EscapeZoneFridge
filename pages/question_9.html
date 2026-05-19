@@ -140,24 +140,103 @@
             "30초 동안 빨간색 세로줄이 가운데 있으면 성공"
         ];
 
+        // const PAGE_NUM = 9;
+        // let tilt, time, isRunning;
+        // let gameLoop, timerLoop;
+
+        // $(document).ready(function() {
+        //     // [2] UI 초기화 (헤더, 푸터, 힌트 버튼 생성)
+        //     initializeUI(PAGE_NUM);
+            
+        //     // [3] 게임 내부 데이터 초기화
+        //     initGame();
+        // });
+
+        // function initGame() {
+        //     tilt = 0;
+        //     time = 30;
+        //     isRunning = false;
+            
+        //     $('#timer').text('30s');
+        //     $('#start-overlay').show();
+        //     $('#road-bg').removeClass('active');
+        //     $('#handlebar').css('transform', `rotate(0deg)`);
+        //     $('#camera-view').css('transform', `rotate(0deg)`);
+        //     $('#pointer').css('left', `50%`);
+            
+        //     if(gameLoop) clearInterval(gameLoop);
+        //     if(timerLoop) clearInterval(timerLoop);
+        // }
+
+        // function startGame() {
+        //     isRunning = true;
+        //     $('#start-overlay').fadeOut();
+        //     $('#road-bg').addClass('active');
+
+        //     // 물리 루프
+        //     gameLoop = setInterval(() => {
+        //         if(!isRunning) return;
+        //         let gravity = tilt * 0.045; 
+        //         let randomShake = (Math.random() - 0.5) * 1.2; 
+        //         tilt += gravity + randomShake;
+
+        //         $('#handlebar').css('transform', `rotate(${tilt}deg)`);
+        //         $('#camera-view').css('transform', `rotate(${-tilt * 0.12}deg)`); 
+        //         $('#pointer').css('left', `${50 + (tilt * 0.9)}%`);
+
+        //         if (Math.abs(tilt) > 52) endGame(false);
+        //     }, 40);
+
+        //     // 타이머 루프
+        //     timerLoop = setInterval(() => {
+        //         if(!isRunning) return;
+        //         time--;
+        //         $('#timer').text(time + 's');
+        //         if(time <= 0) endGame(true);
+        //     }, 1000);
+        // }
+
+        // function pushBalance(val) {
+        //     if(!isRunning) return;
+        //     tilt += val;
+        // }
+
+        // function endGame(success) {
+        //     isRunning = false;
+        //     clearInterval(gameLoop);
+        //     clearInterval(timerLoop);
+        //     $('#road-bg').removeClass('active');
+
+        //     showResultModal({
+        //         success: success,
+        //         message: success 
+        //             ? "무사히 도착했습니다! 대단한 균형 감각이에요." 
+        //             : "어이쿠! 균형을 잃고 말았습니다. 다시 한번 도전해 보세요!",
+        //         onRetry: () => { 
+        //             initGame(); 
+        //         },
+        //         pageNum: PAGE_NUM
+        //     });
+        // }
+
         const PAGE_NUM = 9;
         let tilt, time, isRunning;
         let gameLoop, timerLoop;
+        
+        // [추가] 난이도 제어 변수
+        let failCount = 0; 
 
         $(document).ready(function() {
-            // [2] UI 초기화 (헤더, 푸터, 힌트 버튼 생성)
             initializeUI(PAGE_NUM);
-            
-            // [3] 게임 내부 데이터 초기화
             initGame();
         });
 
         function initGame() {
             tilt = 0;
-            time = 30;
+            time = 15; // 15초로 단축
             isRunning = false;
             
-            $('#timer').text('30s');
+            $('#timer').text('15s');
             $('#start-overlay').show();
             $('#road-bg').removeClass('active');
             $('#handlebar').css('transform', `rotate(0deg)`);
@@ -173,11 +252,21 @@
             $('#start-overlay').fadeOut();
             $('#road-bg').addClass('active');
 
-            // 물리 루프
+            // [난이도 계산] 0회 실패(가장 어려움) ~ 4회 이상 실패(가장 쉬움)
+            // 단계별 중력 계수: 0.07 -> 0.06 -> 0.05 -> 0.04 -> 0.03
+            const difficultyLevel = Math.min(failCount, 4); 
+            const gravityFactor = 0.07 - (difficultyLevel * 0.01);
+            const shakeFactor = 1.5 - (difficultyLevel * 0.2);
+
+            console.log(`현재 난이도 단계: ${difficultyLevel + 1} (중력: ${gravityFactor})`);
+
             gameLoop = setInterval(() => {
                 if(!isRunning) return;
-                let gravity = tilt * 0.045; 
-                let randomShake = (Math.random() - 0.5) * 1.2; 
+
+                // 적용된 난이도 계수 사용
+                let gravity = tilt * gravityFactor; 
+                let randomShake = (Math.random() - 0.5) * shakeFactor; 
+                
                 tilt += gravity + randomShake;
 
                 $('#handlebar').css('transform', `rotate(${tilt}deg)`);
@@ -187,7 +276,6 @@
                 if (Math.abs(tilt) > 52) endGame(false);
             }, 40);
 
-            // 타이머 루프
             timerLoop = setInterval(() => {
                 if(!isRunning) return;
                 time--;
@@ -198,7 +286,9 @@
 
         function pushBalance(val) {
             if(!isRunning) return;
-            tilt += val;
+            // 실패를 많이 할수록 버튼의 밀어주는 힘도 미세하게 보정 (보너스)
+            const pushPower = val * (1 + (Math.min(failCount, 4) * 0.05));
+            tilt += pushPower;
         }
 
         function endGame(success) {
@@ -207,11 +297,15 @@
             clearInterval(timerLoop);
             $('#road-bg').removeClass('active');
 
+            if (!success) {
+                failCount++; // 실패 횟수 증가
+            }
+
             showResultModal({
                 success: success,
                 message: success 
                     ? "무사히 도착했습니다! 대단한 균형 감각이에요." 
-                    : "어이쿠! 균형을 잃고 말았습니다. 다시 한번 도전해 보세요!",
+                    : "어이쿠! 균형을 잃고 말았습니다. 다시 도전하면 자전거가 조금 더 안정될 거예요!",
                 onRetry: () => { 
                     initGame(); 
                 },

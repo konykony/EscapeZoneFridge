@@ -3,7 +3,8 @@
 // [START: COMMON JS LOGIC]
 // 모든 문제에서 공통으로 사용하는 스크립트입니다.
 // ==========================================
-const startTime = Date.now();
+// const startTime = Date.now();
+let startTime;
 let hintInterval = null;
 
 // 쿠키 헬퍼
@@ -132,6 +133,38 @@ function initializeUI(pageNum) {
     injectModals();
     // 4.  온도바 색상 적용
     applyTempBarColor(pageNum);
+    initHintTimestamp(pageNum) ;
+}
+
+/**
+ * 페이지별 힌트 시작 시간을 쿠키에서 가져오거나 새로 생성하는 함수
+ */
+function initHintTimestamp(pageNum) {
+    const cookieKey = 'start_time_p' + pageNum;
+    
+    // 1. 쿠키를 가져오되, 없으면 빈 문자열("")로 초기화하여 에러 방지
+    let savedTime = GetFridgeCookie(cookieKey) || ""; 
+
+    // 2. 데이터가 유효한 숫자인지 체크
+    if (savedTime !== "" && !isNaN(savedTime)) {
+        // 기존 기록이 있으면 숫자로 변환
+        startTime = parseInt(savedTime);
+        console.log(`[Hint] p${pageNum} 기존 시간 로드: ${startTime}`);
+    } else {
+        // 기록이 없거나 비정상적이면 현재 시간으로 신규 생성
+        startTime = Date.now();
+        SetFridgeCookie(cookieKey, startTime);
+        console.log(`[Hint] p${pageNum} 시간 신규 생성: ${startTime}`);
+    }
+
+    return startTime;
+}
+
+/**
+ * 성공 시 해당 페이지의 힌트 타임스탬프를 삭제
+ */
+function clearHintTimestamp(pageNum) {
+    SetFridgeCookie('start_time_p' + pageNum, '', -1);
 }
 
 // [기능 분리] 보안 체크
@@ -207,73 +240,80 @@ function injectModals() {
     }
 }
 
-// 힌트 처리
-window.handleHint = function(n) {
-    // const limits = [60, 180, 300]; 
-    const limits = [1, 3, 5]; 
-    const limit = limits[n-1];
-    $('#hint-title').text('💡 힌트 ' + n);
-    if (hintInterval) clearInterval(hintInterval);
+// // 힌트 처리
+// window.handleHint = function(n) {
+//     const limits = [60, 180, 300]; 
+//     // const limits = [1, 3, 5]; 
+//     const limit = limits[n-1];
+//     $('#hint-title').text('💡 힌트 ' + n);
+//     if (hintInterval) clearInterval(hintInterval);
 
+//     const update = () => {
+//         const elapsed = Math.floor((Date.now() - startTime) / 1000);
+//         if (elapsed < limit) {
+//             const rem = limit - elapsed;
+//             const m = Math.floor(rem / 60), s = rem % 60;
+//             $('#hint-msg').html(`<span class="lock-icon">🔒</span> 아직 볼 수 없습니다.<br><br><strong>${m > 0 ? m+'분 ' : ''}${s}초</strong> 뒤에 공개됩니다.`);
+//         } else {
+//             clearInterval(hintInterval);
+//             $('#hint-msg').html(window.hints[n-1]);
+//         }
+//     };
+//     update();
+//     hintInterval = setInterval(update, 1000);
+//     $('#hint-modal').css('display', 'flex');
+// };
+
+window.handleHint = function(n) {
+    // 1. 전역 변수 선언 확인 (오류 방지 핵심)
+    if (typeof window.hintInterval === 'undefined') window.hintInterval = null;
+    
+    const limits = [60, 180, 300]; 
+    const limit = limits[n-1];
+    
+    $('#hint-title').text('💡 힌트 ' + n);
+
+    // 2. 기존에 돌고 있는 인터벌이 있다면 확실히 정지
+    if (window.hintInterval) {
+        clearInterval(window.hintInterval);
+        window.hintInterval = null;
+    }
+
+    // 3. 내부 업데이트 함수 정의
     const update = () => {
-        const elapsed = Math.floor((Date.now() - startTime) / 1000);
+        // startTime이 숫자가 아니면 현재 시간으로 긴급 복구
+        const currentStart = (typeof startTime === 'number' && !isNaN(startTime)) ? startTime : Date.now();
+        const elapsed = Math.floor((Date.now() - currentStart) / 1000);
+        
+        console.log(`[Hint Update] 경과시간: ${elapsed}s / 목표: ${limit}s`);
+
         if (elapsed < limit) {
             const rem = limit - elapsed;
             const m = Math.floor(rem / 60), s = rem % 60;
             $('#hint-msg').html(`<span class="lock-icon">🔒</span> 아직 볼 수 없습니다.<br><br><strong>${m > 0 ? m+'분 ' : ''}${s}초</strong> 뒤에 공개됩니다.`);
         } else {
-            clearInterval(hintInterval);
+            console.log("[Hint Success] 힌트 공개!");
+            if (window.hintInterval) {
+                clearInterval(window.hintInterval);
+                window.hintInterval = null;
+            }
             $('#hint-msg').html(window.hints[n-1]);
         }
     };
-    update();
-    hintInterval = setInterval(update, 1000);
+
+    // 4. 즉시 실행 및 인터벌 설정
+    try {
+        update(); // 여기서 에러가 나도 catch로 잡음
+        window.hintInterval = setInterval(update, 1000);
+    } catch (e) {
+        console.error("[Hint Error] update 실행 중 오류 발생:", e);
+    }
+
     $('#hint-modal').css('display', 'flex');
 };
 
 window.closeHint = () => { if(hintInterval) clearInterval(hintInterval); $('#hint-modal').hide(); };
 
-// window.showResultModal = function(options) {
-//     // 1. 매개변수로 전달받은 pageNum을 사용합니다. (예: 1번 문제면 1이 들어옴)
-//     const { success, message, onRetry, pageNum } = options; 
-//     const modal = $('#result-modal');
-//     const title = $('#modal-title');
-//     const msg = $('#modal-msg');
-//     const okBtn = $('#modal-ok-btn');
-//     const retryBtn = $('#modal-retry-btn');
-
-//     if (success) {
-//         // [중요] 여기서 const pageNum을 다시 선언하던 줄을 삭제했습니다!
-//         title.text('정답입니다!').removeClass('fail-title-color').addClass('result-title-color');
-//         msg.text(message || '성공적으로 미션을 완수했습니다.');
-        
-//         okBtn.show().text('다음 문제로').off().click(() => {
-//             modal.hide();
-            
-//             // 2. 현재 페이지 번호(pageNum)를 그대로 애니메이션 함수에 넘깁니다.
-//             // 더하기(+1)는 이 안에서 딱 한 번만 수행하도록 통일했습니다.
-//             if (typeof window.runTemperatureSequence === 'function') {
-//                 window.runTemperatureSequence(pageNum);
-//             } else {
-//                 // 백업 로직
-//                 const nextIdx = pageNum + 1;
-//                 SetFridgeCookie('fridge_idx', nextIdx);
-//                 window.location.href = `question_${nextIdx}.html`;
-//             }
-//         });
-//         retryBtn.hide();
-//     } else {
-//         // 실패 로직 (동일)
-//         title.text('길을 잃었어요!').removeClass('result-title-color').addClass('fail-title-color');
-//         msg.text(message || '규칙이 어긋났습니다. 다시 확인해보세요.');
-//         okBtn.hide();
-//         retryBtn.show().text('다시 시도하기').off().click(() => {
-//             modal.hide();
-//             if(onRetry) onRetry();
-//         });
-//     }
-//     modal.css('display', 'flex');
-// };
 
 /**
  * 결과 모달 통합 관리 함수
@@ -353,7 +393,7 @@ function setupFailureUI(message, onRetry) {
 // [기능 분리] 다음 단계 처리 (테스트 모드 분기 및 엔딩 처리)
 function handleNextStep(pageNum, isTestMode) {
     $('#result-modal').hide();
-
+    clearHintTimestamp(pageNum);
     // 1. 테스트 모드인 경우 대시보드로 복귀
     if (isTestMode) {
         window.location.href = 'test.html';
