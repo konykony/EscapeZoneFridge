@@ -106,34 +106,86 @@ function applyTempBarColor(pageNum) {
     $('.temp-bar').css('background', currentColor);
 }
 
+// // UI 및 보안 체크 초기화 메인 함수
+// function initializeUI(pageNum) {
+//     const urlParams = new URLSearchParams(window.location.search);
+//     const isTestMode = urlParams.get('type') === 'test';
+
+//     // 1. 데이터 로드
+//     const sessionData = {
+//         userName: GetFridgeCookie('fridge_name') || "코니",
+//         fridgeIdx: parseInt(GetFridgeCookie('fridge_idx')),
+//         fridgeStatus: GetFridgeCookie('fridge_status'),
+//         isTestMode: isTestMode
+//     };
+
+//     // 2. 보안 및 정합성 체크 (테스트 모드일 때는 스킵)
+//     if (!isTestMode) {
+//         if (!checkSecurity(sessionData)) return;
+//         if (!checkPageConsistency(pageNum, sessionData.fridgeIdx)) return;
+//     } else {
+//         console.warn(`[TEST MODE] ${pageNum}번 페이지 강제 로드됨.`);
+//     }
+
+//     // 3. UI 렌더링
+//     renderHeader(pageNum, sessionData.userName);
+//     renderFooter();
+//     injectModals();
+//     // 4.  온도바 색상 적용
+//     applyTempBarColor(pageNum);
+//     initHintTimestamp(pageNum) ;
+// }
+
 // UI 및 보안 체크 초기화 메인 함수
 function initializeUI(pageNum) {
+    // 1. URL 파라미터 판정 (네이버 앱 대응을 위해 최상단 배치 및 대소문자 방어)
     const urlParams = new URLSearchParams(window.location.search);
-    const isTestMode = urlParams.get('type') === 'test';
+    const typeParam = (urlParams.get('type') || "").toLowerCase(); 
+    const isTestMode = typeParam === 'test';
 
-    // 1. 데이터 로드
+    // 2. 데이터 로드 (테스트 모드일 때는 쿠키를 무시하고 가상 데이터 즉시 할당)
+    let userName, fridgeIdx, fridgeStatus;
+
+    if (isTestMode) {
+        userName = "테스트대원";
+        fridgeIdx = pageNum;
+        fridgeStatus = "playing";
+        console.warn(`[TEST MODE] 네이버 앱 우회 모드 활성화 - ${pageNum}번 페이지`);
+    } else {
+        userName = GetFridgeCookie('fridge_name') || "코니";
+        fridgeIdx = parseInt(GetFridgeCookie('fridge_idx')) || 0;
+        fridgeStatus = GetFridgeCookie('fridge_status');
+    }
+
     const sessionData = {
-        userName: GetFridgeCookie('fridge_name') || "코니",
-        fridgeIdx: parseInt(GetFridgeCookie('fridge_idx')),
-        fridgeStatus: GetFridgeCookie('fridge_status'),
+        userName: userName,
+        fridgeIdx: fridgeIdx,
+        fridgeStatus: fridgeStatus,
         isTestMode: isTestMode
     };
 
-    // 2. 보안 및 정합성 체크 (테스트 모드일 때는 스킵)
+    // 3. 보안 및 정합성 체크 (실제 운영 모드에서만 실행)
     if (!isTestMode) {
-        if (!checkSecurity(sessionData)) return;
+        if (!checkSecurity(sessionData)) return; // 실패 시 여기서 error.html 이동
         if (!checkPageConsistency(pageNum, sessionData.fridgeIdx)) return;
-    } else {
-        console.warn(`[TEST MODE] ${pageNum}번 페이지 강제 로드됨.`);
     }
 
-    // 3. UI 렌더링
+    // 4. UI 렌더링
     renderHeader(pageNum, sessionData.userName);
     renderFooter();
     injectModals();
-    // 4.  온도바 색상 적용
+    
+    // 5. 온도바 색상 적용
     applyTempBarColor(pageNum);
-    initHintTimestamp(pageNum) ;
+
+    // 6. 힌트 타임스탬프 초기화 (전역 startTime에 할당)
+    // 전역 변수 startTime이 선언되어 있다면 아래와 같이 값을 담아줍니다.
+    if (typeof startTime !== 'undefined') {
+        startTime = initHintTimestamp(pageNum);
+    } else {
+        // 전역 변수가 없다면 함수만 실행하여 쿠키만 생성
+        initHintTimestamp(pageNum);
+    }
 }
 
 /**
