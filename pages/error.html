@@ -96,7 +96,7 @@
         }
 
         function resetAndMain() {
-            const cookies = ['fridge_name', 'fridge_idx', 'fridge_start_time', 'fridge_status','polar_items','q4_complete'];
+            const cookies = ['fridge_name', 'fridge_idx', 'fridge_start_time', 'fridge_status','polar_items','q4_complete','endTime'];
             cookies.forEach(c => deleteCookie(c));
             alert("모든 정보가 초기화되었습니다.");
             location.href = 'index.html';
