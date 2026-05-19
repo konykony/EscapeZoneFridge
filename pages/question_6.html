@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>북극곰 프로젝트 - 문제 6</title>
+    <link rel="stylesheet" href="../lib/bootstrap-5.3.8-dist/css/bootstrap.min.css" />
+    <link rel="stylesheet" href="../lib/Pretendard-1.3.9/web/static/pretendard.css" />
+    <link rel="stylesheet" href="../css/common.css">
+    <style>
+        body, html { margin: 0; padding: 0; height: 100vh; background-color: #f1f5f9; font-family: 'Pretendard', sans-serif; overflow: hidden; touch-action: none; }
+        main { display: flex; flex-direction: column; align-items: center; padding: 15px; gap: 20px; }
+        .inventory-box { background: white; border-radius: 20px; padding: 12px; display: flex; justify-content: center; gap: 8px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); width: 100%; max-width: 400px; }
+        .item-slot { width: 52px; height: 52px; transition: 0.3s; }
+        .item-slot.sorting-done { visibility: hidden; }
+        .bins-container { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; width: 100%; max-width: 380px; }
+        .bin-item { text-align: center; padding: 5px; border-radius: 12px; }
+        .bin-item.drag-over { background: rgba(17, 202, 160, 0.1); transform: scale(1.05); }
+        .polar-sprite { background-image: url('../img/spritesheet.png'); background-repeat: no-repeat; display: inline-block; background-size: 380px 207px; }
+        .icon-paper { width: 45px; height: 45px; background-position: -23px -130px; }
+        .icon-plastic { width: 45px; height: 45px; background-position: -96px -130px; }
+        .icon-can { width: 45px; height: 45px; background-position: -169px -130px; }
+        .icon-glass { width: 45px; height: 45px; background-position: -240px -130px; }
+        .icon-general { width: 45px; height: 45px; background-position: -313px -130px; }
+        .bin-img { background-image: url('../img/spritesheet_big2.png'); background-repeat: no-repeat; display: inline-block; background-size: 800px 437px; }
+        .bin-cyan { width: 95px; height: 120px; background-position: -50px -119px; }
+        .bin-purple { width: 95px; height: 120px; background-position: -203px -119px; }
+        .bin-red { width: 95px; height: 120px; background-position: -353px -119px; }
+        .bin-green { width: 95px; height: 120px; background-position: -509px -119px; }
+        .bin-black { width: 95px; height: 120px; background-position: -658px -119px; }
+        .drag-proxy { position: fixed; pointer-events: none; z-index: 2000; transform: translate(-50%, -50%); opacity: 0.8; display: none; }
+    </style>
+</head>
+<body>
+    <header id="common-header"></header>
+    <main>
+        <div class="instruction" id="guide-box">📍 수집한 쓰레기를 알맞은 쓰레기통에 버려주세요!</div>
+        <div class="inventory-box" id="inventory-area">
+            <div class="item-slot" id="slot-paper" data-type="paper"><span class="icon-paper polar-sprite"></span></div>
+            <div class="item-slot" id="slot-plastic" data-type="plastic"><span class="icon-plastic polar-sprite"></span></div>
+            <div class="item-slot" id="slot-can" data-type="can"><span class="icon-can polar-sprite"></span></div>
+            <div class="item-slot" id="slot-glass" data-type="glass"><span class="icon-glass polar-sprite"></span></div>
+            <div class="item-slot" id="slot-general" data-type="general"><span class="icon-general polar-sprite"></span></div>
+        </div>
+        <div class="bins-container" id="bins-area">
+            <div class="bin-item" data-bin="paper"><div class="bin-cyan bin-img"></div></div>
+            <div class="bin-item" data-bin="plastic"><div class="bin-purple bin-img"></div></div>
+            <div class="bin-item" data-bin="can"><div class="bin-red bin-img"></div></div>
+            <div class="bin-item" data-bin="glass"><div class="bin-green bin-img"></div></div>
+            <div class="bin-item" data-bin="general"><div class="bin-black bin-img"></div></div>
+        </div>
+    </main>
+    <div id="drag-proxy" class="drag-proxy polar-sprite"></div>
+    <footer id="common-footer"></footer>
+
+    <script src="../lib/jquery-3.6.0.min.js"></script>
+    <script src="../js/common.js"></script>
+    <script>
+        const REQUIRED_ITEMS = ['paper', 'plastic', 'can', 'glass', 'general'];
+        
+        window.hints = [
+            "각각의 쓰레기는 알맞은 쓰레기통에 넣으세요.",
+            "쓰레기를 잡고 이동시켜 보세요.",
+            "종이는 종이 쓰레기통에 버려주세요."
+        ];
+        let sortedCount = 0;
+
+        $(document).ready(function() {
+            initializeUI(6);
+            if (!checkCollectionDone()) {
+                alert("아직 모든 쓰레기를 수집하지 않았습니다!");
+                window.location.href = "question_5.html";
+            }
+            shuffleBins(); 
+            initTouchDrag();
+        });
+
+        function shuffleBins() {
+            const container = $('#bins-area');
+            const items = container.children('.bin-item').get();
+            for (let i = items.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [items[i], items[j]] = [items[j], items[i]];
+            }
+            $.each(items, function(i, item) { container.append(item); });
+        }
+
+        function checkCollectionDone() {
+            let collected = (GetFridgeCookie("polar_items") || "").split(',').filter(x => x);
+            return collected.length === REQUIRED_ITEMS.length;
+        }
+
+        function initTouchDrag() {
+            let dragType = null;
+            const $proxy = $('#drag-proxy');
+
+            $('.item-slot').on('touchstart', function(e) {
+                if ($(this).hasClass('sorting-done')) return;
+                dragType = $(this).data('type');
+                const iconClass = $(this).find('span').attr('class').split(' ').find(c => c.startsWith('icon-'));
+                $proxy.attr('class', 'drag-proxy polar-sprite ' + iconClass).show();
+                moveProxy(e.touches[0].pageX, e.touches[0].pageY);
+            });
+
+            $(document).on('touchmove', function(e) {
+                if (!dragType) return;
+                moveProxy(e.touches[0].pageX, e.touches[0].pageY);
+                const target = document.elementFromPoint(e.touches[0].clientX, e.touches[0].clientY);
+                $('.bin-item').removeClass('drag-over');
+                $(target).closest('.bin-item').addClass('drag-over');
+            });
+
+            $(document).on('touchend', function(e) {
+                if (!dragType) return;
+                const touch = e.changedTouches[0];
+                const target = document.elementFromPoint(touch.clientX, touch.clientY);
+                const binType = $(target).closest('.bin-item').data('bin');
+
+                if (binType === dragType) {
+                    $(`#slot-${dragType}`).addClass('sorting-done');
+                    sortedCount++;
+                    if (sortedCount === REQUIRED_ITEMS.length) {
+                        DeleteFridgeCookie("polar_items");
+                        showResultModal({ success: true, message: "완벽하게 분리수거를 마쳤습니다!", pageNum: 6 });
+                    }
+                } else if (binType) { 
+                    alert("알맞은 통이 아닙니다!"); 
+                }
+
+                $proxy.hide(); 
+                $('.bin-item').removeClass('drag-over'); 
+                dragType = null;
+            });
+
+            function moveProxy(x, y) { $proxy.css({ left: x + 'px', top: y + 'px' }); }
+        }
+    </script>
+</body>
+</html>

@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>북극곰 프로젝트 - 문제 8</title>
+    
+    <link rel="stylesheet" href="../lib/bootstrap-5.3.8-dist/css/bootstrap.min.css" />
+    <link rel="stylesheet" href="../lib/Pretendard-1.3.9/web/static/pretendard.css" />
+    <link rel="stylesheet" href="../css/common.css">
+
+    <style>
+        /* 문제 8번 전용 레이아웃 */
+        main {
+            margin-top: var(--header-height);
+            height: calc(100vh - var(--header-height) - var(--footer-height));
+            display: flex; flex-direction: column; align-items: center; justify-content: center;
+            padding: 20px;
+        }
+
+        .instruction { 
+            font-size: 1.1rem; font-weight: 700; color: #334155; 
+            text-align: center; margin-bottom: 30px; word-break: keep-all; 
+            line-height: 1.6; max-width: 500px;
+        }
+        .instruction b { color: var(--main-color, #0ea5e9); }
+
+        /* 입력 및 제출 영역 */
+        .input-group-custom { width: 100%; max-width: 360px; }
+        .answer-field {
+            width: 100%; padding: 18px; border-radius: 20px; border: 2px solid #cbd5e1;
+            font-size: 1.2rem; font-weight: 800; text-align: center; margin-bottom: 15px;
+            outline: none; transition: 0.3s; background: white;
+        }
+        .answer-field:focus { border-color: var(--main-color, #0ea5e9); box-shadow: 0 0 15px rgba(80,118,161,0.15); }
+
+        .btn-submit {
+            width: 100%; padding: 18px; border-radius: 20px; border: none;
+            background-color: var(--main-color, #0ea5e9); color: white;
+            font-size: 1.2rem; font-weight: 900; cursor: pointer; transition: 0.2s;
+        }
+        .btn-submit:active { transform: scale(0.97); }
+    </style>
+</head>
+<body>
+    <header id="common-header"></header>
+
+    <main>
+        <div class="instruction">
+            전원을 차단하자 열람실 벽면의 <b>나무심기 포스터</b>가 모습을 드러냈습니다. 오늘 나무를 심으러 가기 위해, 암호로 뒤섞인 행사 장소 명칭을 정확히 해독해야 합니다.
+        </div>
+
+        <div class="input-group-custom">
+            <input type="text" id="user-answer" class="answer-field" placeholder="장소를 입력하세요" autocomplete="off">
+            <button class="btn-submit" onclick="validateAnswer()">해독 완료</button>
+        </div>
+    </main>
+
+    <footer id="common-footer"></footer>
+
+    <script src="../lib/jquery-3.6.0.min.js"></script>
+    <script src="../js/common.js"></script>
+
+    <script>
+        const PAGE_NUM = 8;
+        const TARGET_ANSWER = "국사봉생태놀이터";
+
+        // 코니님이 정하신 3단계 힌트
+        window.hints = [
+            "포스터는 어린이 열람실 벽면에 붙어 있고, 비밀 암호 해독기는 도서관 테이블 위에 있습니다.",
+            "'N'은 'ㄱ'입니다.",
+            "정답은 '국사봉생태놀이터' 입니다."
+        ];
+
+        $(document).ready(function() {
+            // 안전한 UI 초기화 호출
+            if (typeof initializeUI === 'function') {
+                initializeUI(PAGE_NUM);
+            }
+            
+            // 엔터키 지원
+            $('#user-answer').on('keypress', function(e) {
+                if(e.which == 13) validateAnswer();
+            });
+
+            $('#user-answer').focus();
+        });
+
+        function validateAnswer() {
+            // 모든 공백 제거 후 정답 비교
+            const userInput = $('#user-answer').val().trim().replace(/\s/g, "");
+
+            if (userInput === TARGET_ANSWER) {
+                if (typeof showResultModal === 'function') {
+                    showResultModal({
+                        success: true,
+                        message: "완벽하게 해독했습니다! 이제 국사봉 생태놀이터로 이동하여 나무를 심어주세요.",
+                        pageNum: PAGE_NUM
+                    });
+                } else {
+                    alert("정답입니다! 다음 단계로 이동하세요.");
+                }
+            } else if (userInput === "") {
+                alert("해독한 장소명을 입력해 주세요.");
+            } else {
+                alert("해독 결과가 일치하지 않습니다. 다시 한 번 확인해 보세요.");
+                $('#user-answer').val('').focus();
+            }
+        }
+    </script>
+</body>
+</html>

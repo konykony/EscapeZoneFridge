@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>북극곰 프로젝트 - 잘못된 접근</title>
+    <!-- Bootstrap 5 CSS -->
+    <link rel="stylesheet" href="../lib/bootstrap-5.3.8-dist/css/bootstrap.min.css" />
+    <link rel="stylesheet" href="../lib/Pretendard-1.3.9/web/static/pretendard.css" />
+
+    <style>
+        /* @import url('https://cdn.jsdelivr.net/gh/orioncactus/pretendard/dist/web/static/pretendard.css'); */
+        
+        :root {
+            --main-color: #5076A1;
+            --bg-color: #F8FAFC;
+        }
+
+        body, html {
+            margin: 0; padding: 0; height: 100%;
+            background-color: var(--bg-color);
+            font-family: 'Pretendard', sans-serif;
+            display: flex; align-items: center; justify-content: center;
+        }
+
+        .error-container {
+            background: white;
+            padding: 50px 30px;
+            border-radius: 40px;
+            box-shadow: 0 15px 35px rgba(0,0,0,0.05);
+            text-align: center;
+            width: 90%;
+            max-width: 400px;
+            border: 1px solid #E2E8F0;
+        }
+
+        .error-icon {
+            font-size: 4rem;
+            margin-bottom: 20px;
+            display: block;
+        }
+
+        .error-title {
+            font-weight: 900;
+            color: #EF4444;
+            font-size: 1.6rem;
+            margin-bottom: 15px;
+        }
+
+        .error-msg {
+            color: #64748B;
+            font-size: 1rem;
+            line-height: 1.6;
+            margin-bottom: 35px;
+            word-break: keep-all;
+        }
+
+        .btn-group-vertical { width: 100%; gap: 12px; }
+
+        .btn-custom {
+            padding: 18px;
+            border-radius: 20px;
+            font-weight: 800;
+            font-size: 1.1rem;
+            border: none;
+            transition: 0.2s;
+            width: 100%;
+        }
+
+        .btn-main { background-color: var(--main-color); color: white; }
+        .btn-reset { background-color: #E2E8F0; color: #475569; }
+
+        .btn-custom:active { transform: scale(0.98); opacity: 0.9; }
+    </style>
+</head>
+<body>
+
+    <div class="error-container">
+        <span class="error-icon">⚠️</span>
+        <h2 class="error-title">잘못된 접근입니다!</h2>
+        <p class="error-msg">
+            진행 정보를 찾을 수 없거나 비정상적인 경로로 접속되었습니다. 처음부터 다시 시작해 주세요.
+        </p>
+
+        <div class="btn-group-vertical d-flex flex-column">
+            <button onclick="resetAndMain()" class="btn-custom btn-reset">게임 정보 초기화</button>
+            <button onclick="goMain()" class="btn-custom btn-main">메인 화면으로 이동</button>
+        </div>
+    </div>
+
+    <script src="../lib/jquery-3.6.0.min.js"></script>
+    <script>
+        // 모든 게임 관련 쿠키 삭제 함수
+        function deleteCookie(name) {
+            document.cookie = name + '=; expires=Thu, 01 Jan 1970 00:00:01 GMT; path=/;';
+        }
+
+        function resetAndMain() {
+            const cookies = ['fridge_name', 'fridge_idx', 'fridge_start_time', 'fridge_status','polar_items','q4_complete'];
+            cookies.forEach(c => deleteCookie(c));
+            alert("모든 정보가 초기화되었습니다.");
+            location.href = 'index.html';
+        }
+
+        function goMain() {
+            location.href = 'index.html';
+        }
+    </script>
+</body>
+</html>

@@ -1,0 +1,192 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>북극곰 프로젝트 - 문제 4</title>
+    
+    <link rel="stylesheet" href="../lib/bootstrap-5.3.8-dist/css/bootstrap.min.css" />
+    <link rel="stylesheet" href="../lib/Pretendard-1.3.9/web/static/pretendard.css" />
+    <link rel="stylesheet" href="../css/common.css">
+
+    <style>
+        body, html { margin: 0; padding: 0; height: 100vh; background-color: var(--bg-color); font-family: 'Pretendard', sans-serif; overflow: hidden; }
+
+        main {
+            margin-top: var(--header-height);
+            height: calc(100vh - var(--header-height) - var(--footer-height));
+            display: flex; flex-direction: column;
+            padding: 0; /* 내부 스크롤을 위해 패딩 제거 */
+        }
+
+        /* 검색 결과창 컨테이너 (스크롤 가능 영역) */
+        .search-results-container {
+            flex: 1;
+            overflow-y: auto; /* 세로 스크롤 활성화 */
+            padding: 25px;
+            background: white;
+            -webkit-overflow-scrolling: touch;
+        }
+
+        /* 브라우저 상단 바 느낌의 디자인 */
+        .browser-top {
+            background: #E2E8F0;
+            padding: 10px 20px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-size: 0.9rem;
+            font-weight: 700;
+            color: #64748B;
+            border-bottom: 1px solid #CBD5E1;
+        }
+
+        /* 검색 결과 디자인 */
+        .search-item { margin-bottom: 30px; }
+        .search-title { color: #1A0DAB; font-size: 1.25rem; font-weight: 700; text-decoration: none; display: block; margin-bottom: 5px; }
+        .search-url { color: #006621; font-size: 0.85rem; margin-bottom: 5px; }
+        .search-desc { color: #4B5563; font-size: 0.95rem; line-height: 1.6; word-break: keep-all; }
+        .highlight { color: #EF4444; font-weight: 800; }
+
+        /* 하단 다음 버튼 영역 */
+        .next-action-area {
+            padding: 40px 0;
+            text-align: center;
+            border-top: 1px dashed #E2E8F0;
+            margin-top: 20px;
+        }
+        
+        .next-btn-final {
+            background: var(--main-color);
+            color: white; border: none; padding: 18px 40px;
+            border-radius: 15px; font-weight: 900; font-size: 1.1rem;
+            box-shadow: 0 4px 15px rgba(80, 118, 161, 0.3);
+        }
+
+        /* 스크롤바 디자인 */
+        .search-results-container::-webkit-scrollbar { width: 6px; }
+        .search-results-container::-webkit-scrollbar-track { background: #f1f1f1; }
+        .search-results-container::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
+
+        /* 브라우저 상단 바 보정 */
+        .browser-top {
+            width: 100%;             /* [추가] 가로 전체를 꽉 채웁니다 */
+            box-sizing: border-box;  /* [추가] 패딩값이 너비에 영향을 주지 않게 합니다 */
+            background: #E2E8F0;
+            padding: 10px 20px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-size: 0.9rem;
+            font-weight: 700;
+            color: #64748B;
+            border-bottom: 1px solid #CBD5E1;
+        }
+    </style>
+</head>
+<body>
+
+    <header id="common-header"></header>
+
+    <main>
+        <!-- 웹브라우저 주소창 느낌 -->
+        <div class="browser-top">
+            <span style="color:#EF4444">●</span><span style="color:#F59E0B">●</span><span style="color:#10B981">●</span>
+            <span class="ms-2">search.polar-bear.org/results</span>
+        </div>
+
+        <!-- 스크롤 가능한 검색 결과 영역 -->
+        <div class="search-results-container">
+            <div class="search-item">
+                <div class="search-url">https://eco-knowledge.net > climate</div>
+                <div class="search-title">지구 온난화와 이산화탄소의 관계</div>
+                <div class="search-desc">
+                    지구 대기에는 여러 기체가 섞여 있으며, 그중 약 <span class="highlight">0.04%</span> 정도가 이산화탄소입니다. 
+                    이산화탄소는 지구에서 방출되는 적외선(열)을 흡수하는 성질이 있어 지구가 생물이 살 수 있는 온도를 유지하게 합니다.
+                </div>
+            </div>
+
+            <div class="search-item">
+                <div class="search-url">https://arctic-watch.org > polar-bear</div>
+                <div class="search-title">북극곰이 냉장고를 찾는 진짜 이유</div>
+                <div class="search-desc">
+                    화석 연료 사용 증가로 대기 중 이산화탄소의 양이 늘어나면서 지구 평균 기온이 상승하고 있습니다. 
+                    기온이 올라가면서 북극의 <span class="highlight">해빙(바다 얼음)</span>이 빠르게 녹고 있으며, 
+                    북극곰은 사냥하고 이동할 공간을 잃어가고 있습니다.
+                </div>
+            </div>
+
+            <div class="search-item">
+                <div class="search-url">https://save-the-ice.com > report</div>
+                <div class="search-title">탄소 중립이 필요한 이유</div>
+                <div class="search-desc">
+                    해빙 위에서 생활하는 북극곰에게 얼음은 생존과 직결됩니다. 
+                    지구의 온도 상승을 늦추기 위해서는 이산화탄소 배출을 줄이는 <span class="highlight">탄소 중립</span> 노력이 반드시 필요합니다.
+                </div>
+            </div>
+
+            <!-- 스크롤 끝에 위치한 버튼 -->
+            <div class="next-action-area">
+                <p class="text-muted small mb-4">모든 정보를 확인하셨나요?</p>
+                <button class="next-btn-final" onclick="showStoryModal()">내용 확인 완료</button>
+            </div>
+        </div>
+    </main>
+
+    <footer id="common-footer"></footer>
+
+    <script src="../lib/jquery-3.6.0.min.js"></script>
+    <script src="../js/common.js"></script>
+
+    <script>
+        const PAGE_NUM = 4;
+
+        window.hints = [
+            "냉동고에서 아이스크림을 꺼내 먹으세요.",
+            "파란색 재활용 쓰레기통 주변을 살펴보세요.",
+            "재활용 쓰레기통에 붙어 있는 QR코드를 찍어보세요."
+        ];
+
+        $(document).ready(function() {
+            initializeUI(PAGE_NUM);
+        });
+
+       function showStoryModal() {
+            // 1. 메시지 구성
+            const storyMessage = `북극곰이 왜 냉장고를 보내 달라고 했는지 알게 되었습니다.<br><br>
+                                바닷가에서 도서관까지 달려왔더니 너무 덥습니다.<br>
+                                냉동고에서 아이스크림을 하나 꺼내 먹어 봅시다.<br><br>
+                                아이스크림을 다 먹었다면 포장지를 물로 헹군 뒤 <span style="color:#3B7FB9; font-weight:800;">파란색 재활용 쓰레기통</span>에 버리세요.<br>
+                                그리고 재활용 쓰레기통에 숨겨진 비밀을 찾아보세요.`;
+
+            // 2. 일단 공통 모달을 호출합니다. (이때 common.js가 이동 이벤트를 버튼에 겁니다.)
+            showResultModal({
+                success: true,
+                message: storyMessage,
+                pageNum: PAGE_NUM
+            });
+
+            // 3. [중요] common.js가 버튼에 건 '강제 이동' 이벤트를 제거하고 새 기능을 넣습니다.
+            $('.modal-main-btn')
+                .off('click') // 기존의 모든 클릭 이벤트를 삭제
+                .on('click', function() {
+                    // 버튼 클릭 시 다음 페이지로 가지 않고 팝업만 닫음
+                    $('.common-modal-overlay').fadeOut(300);
+                    console.log("페이지 이동 없이 팝업만 닫았습니다.");
+                })
+                .text('미션 계속하기'); // 버튼 글자 변경
+
+            // 4. 모달 본문 스타일 보정 (이전과 동일)
+            $('.modal-title-style').text('ℹ️ 정보 확인 완료'); 
+            $('.modal-body-text').html(storyMessage).css({
+                'text-align': 'left',
+                'word-break': 'keep-all',
+                'display': 'inline-block',
+                'width': 'fit-content',
+                'margin': '0 auto'
+            });
+            $('.modal-body-text').parent().css('text-align', 'center');
+        }
+    </script>
+</body>
+</html>

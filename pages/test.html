@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>북극곰 프로젝트 - Test Center</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.css" />
+    <style>
+        :root {
+            --bg-silver: #f1f5f9;
+            --primary-blue: #0ea5e9;
+            --white: #ffffff;
+            --text-dark: #1e293b;
+        }
+
+        body {
+            font-family: 'Pretendard', sans-serif;
+            background-color: var(--bg-silver);
+            padding: 40px 20px;
+            margin: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        h1 {
+            font-size: 28px;
+            font-weight: 800;
+            color: var(--text-dark);
+            margin-bottom: 40px;
+        }
+
+        /* 가로 배열을 위한 그리드 컨테이너 */
+        .test-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); /* 화면 넓이에 따라 자동 가로 배열 */
+            gap: 12px;
+            width: 100%;
+            max-width: 1100px;
+        }
+
+        /* 개별 문제 카드 (가로형 레이아웃) */
+        .test-card {
+            background: var(--white);
+            border-radius: 16px;
+            padding: 12px 18px;
+            text-decoration: none;
+            color: var(--text-dark);
+            display: flex;
+            align-items: center; /* 가로 중앙 정렬 */
+            gap: 15px;
+            border: 1px solid #e2e8f0;
+            transition: all 0.2s ease;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.04);
+        }
+
+        .test-card:hover {
+            transform: translateY(-2px);
+            border-color: var(--primary-blue);
+            box-shadow: 0 8px 15px rgba(0,0,0,0.08);
+        }
+
+        /* 숫자 배지 스타일 */
+        .num-badge {
+            background-color: #e0f2fe;
+            color: var(--primary-blue);
+            font-weight: 800;
+            width: 42px;
+            height: 32px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 8px;
+            font-size: 15px;
+            flex-shrink: 0; /* 숫자 크기 고정 */
+        }
+
+        .title {
+            font-weight: 700;
+            font-size: 16px;
+            white-space: nowrap; /* 제목 줄바꿈 방지 */
+        }
+    </style>
+</head>
+<body>
+
+    <h1>Test Center</h1>
+
+    <div class="test-container">
+        <a href="question_0.html?type=test" class="test-card"><div class="num-badge">00</div><div class="title">인트로</div></a>
+        <a href="question_1.html?type=test" class="test-card"><div class="num-badge">01</div><div class="title">길찾기</div></a>
+        <a href="question_2.html?type=test" class="test-card"><div class="num-badge">02</div><div class="title">동물언어 해독</div></a>
+        <a href="question_3.html?type=test" class="test-card"><div class="num-badge">03</div><div class="title">컴퓨터 비밀번호 풀기</div></a>
+        <a href="question_4.html?type=test" class="test-card"><div class="num-badge">04</div><div class="title">컴퓨터 화면 보기</div></a>
+        <a href="question_5.html?type=test" class="test-card"><div class="num-badge">05</div><div class="title">쓰레기 찾기</div></a>
+        <a href="question_6.html?type=test" class="test-card"><div class="num-badge">06</div><div class="title">쓰레기 버리기</div></a>
+        <a href="question_7.html?type=test" class="test-card"><div class="num-badge">07</div><div class="title">전원 차단</div></a>
+        <a href="question_8.html?type=test" class="test-card"><div class="num-badge">08</div><div class="title">포스터 암호</div></a>
+        <a href="question_9.html?type=test" class="test-card"><div class="num-badge">09</div><div class="title">자전거 타기</div></a>
+        <a href="question_10.html?type=test" class="test-card"><div class="num-badge">10</div><div class="title">깃발 찾기</div></a>
+        <a href="question_11.html?type=test" class="test-card"><div class="num-badge">11</div><div class="title">같은 카드 찾기</div></a>
+        <a href="question_12.html?type=test" class="test-card"><div class="num-badge">12</div><div class="title">나무 심기</div></a>
+        <a onclick="resetAndMain()" class="test-card"><div class="num-badge"></div><div class="title">초기화</div></a>
+    </div>
+
+
+    <script src="../lib/jquery-3.6.0.min.js"></script>
+    <script>
+        // 모든 게임 관련 쿠키 삭제 함수
+        function deleteCookie(name) {
+            document.cookie = name + '=; expires=Thu, 01 Jan 1970 00:00:01 GMT; path=/;';
+        }
+
+
+        function resetAndMain() {
+            const cookies = ['fridge_name', 'fridge_idx', 'fridge_start_time', 'fridge_status','polar_items','q4_complete'];
+            cookies.forEach(c => deleteCookie(c));
+            alert("모든 정보가 초기화되었습니다.");
+            location.href = 'index.html';
+        }
+    </script>
+</body>
+</html>

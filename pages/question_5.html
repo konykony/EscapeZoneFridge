@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>북극곰 프로젝트 - 문제 5</title>
+    <link rel="stylesheet" href="../lib/bootstrap-5.3.8-dist/css/bootstrap.min.css" />
+    <link rel="stylesheet" href="../lib/Pretendard-1.3.9/web/static/pretendard.css" />
+    <link rel="stylesheet" href="../css/common.css">
+    <style>
+        body, html { margin: 0; padding: 0; height: 100vh; background-color: #f1f5f9; font-family: 'Pretendard', sans-serif; overflow: hidden; }
+        main { display: flex; flex-direction: column; align-items: center; padding: 10px 15px; gap: 12px; overflow-y: auto; }
+        .search-result-box { background: white; width: 100%; max-width: 400px; border-radius: 15px; box-shadow: 0 2px 8px rgba(0,0,0,0.05); border: 1px solid #e2e8f0; }
+        .result-header { background: #f8fafc; padding: 8px 15px; font-size: 0.75rem; font-weight: 700; color: #64748b; border-bottom: 1px solid #e2e8f0; display: flex; justify-content: space-between; }
+        .book-row { display: flex; justify-content: space-between; align-items: center; padding: 12px 15px; border-bottom: 1px solid #f1f5f9; }
+        .book-name { font-size: 0.85rem; font-weight: 700; color: #1e293b; }
+        .call-number { font-size: 0.78rem; font-weight: 500; color: #005088; font-family: monospace; }
+        .inventory-box { background: white; border-radius: 20px; padding: 12px; display: flex; justify-content: center; gap: 8px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); width: 100%; max-width: 400px; }
+        .item-slot { width: 52px; height: 52px; opacity: 0.15; filter: grayscale(1); }
+        .item-slot.collected { opacity: 1; filter: grayscale(0); }
+        .polar-sprite { background-image: url('../img/spritesheet.png'); background-repeat: no-repeat; display: inline-block; background-size: 380px 207px; }
+        .icon-paper { width: 45px; height: 45px; background-position: -23px -130px; }
+        .icon-plastic { width: 45px; height: 45px; background-position: -96px -130px; }
+        .icon-can { width: 45px; height: 45px; background-position: -169px -130px; }
+        .icon-glass { width: 45px; height: 45px; background-position: -240px -130px; }
+        .icon-general { width: 45px; height: 45px; background-position: -313px -130px; }
+    </style>
+</head>
+<body>
+    <header id="common-header"></header>
+    <main>
+        <div class="instruction">📍 아래 도서 목록을 참고하여 책을 찾고, 그 안의 쓰레기를 QR 코드로 수집하세요!</div>
+        <div class="search-result-box">
+            <div class="result-header"><span>서명 (Title)</span><span>청구기호 (Call No.)</span></div>
+            <div class="book-row" id="row-paper"><span class="book-name">종이학</span><span class="call-number">아동 843-208</span></div>
+            <div class="book-row" id="row-plastic"><span class="book-name">플라스틱 지구</span><span class="call-number">아동 539-암57ㅍ</span></div>
+            <div class="book-row" id="row-can"><span class="book-name">미래가 온다, 로봇</span><span class="call-number">아동 508-김54ㅁv.1</span></div>
+            <div class="book-row" id="row-glass"><span class="book-name">피터의 안경</span><span class="call-number">아동 843 126</span></div>
+            <div class="book-row" id="row-general"><span class="book-name">집안 치우기</span><span class="call-number">아동 813.8-59</span></div>
+        </div>
+        <div class="inventory-box">
+            <div class="item-slot" id="slot-paper"><span class="icon-paper polar-sprite"></span></div>
+            <div class="item-slot" id="slot-plastic"><span class="icon-plastic polar-sprite"></span></div>
+            <div class="item-slot" id="slot-can"><span class="icon-can polar-sprite"></span></div>
+            <div class="item-slot" id="slot-glass"><span class="icon-glass polar-sprite"></span></div>
+            <div class="item-slot" id="slot-general"><span class="icon-general polar-sprite"></span></div>
+        </div>
+    </main>
+    <footer id="common-footer"></footer>
+    <script src="../lib/jquery-3.6.0.min.js"></script>
+    <script src="../js/common.js"></script>
+    <script>
+        const REQUIRED_ITEMS = ['paper', 'plastic', 'can', 'glass', 'general'];
+        
+        window.hints = [
+            "어린이 열람실에서 책을 찾아보세요.", 
+            "청구기호를 보고 해당 책을 찾으세요.", 
+            "책 앞표지에 있는 QR코드를 찍어보세요."
+        ];
+
+
+        $(document).ready(function() {
+            // initializeUI(5);
+            // processItemCollection();
+            // updateInventoryUI();
+
+            
+            initializeUI(5);
+            if (checkMissionAccess()) {
+                processItemCollection();
+                updateInventoryUI();
+                initTouchDrag();
+            } else {
+                window.location.href = "question_4.html";
+            }
+        });
+
+        function checkMissionAccess() {
+            const isQ4Done = GetFridgeCookie('q4_complete') === 'Y';
+            const currentIdx = GetFridgeCookie('fridge_idx');
+            const urlParams = new URLSearchParams(window.location.search);
+            if (urlParams.get('item') == null && isQ4Done) {
+                SetFridgeCookie('fridge_idx', '5'); return true;
+            }
+            return currentIdx === '5';
+        }
+
+
+        function processItemCollection() {
+            const newItem = new URLSearchParams(window.location.search).get('item');
+            if (newItem && REQUIRED_ITEMS.includes(newItem)) {
+                let collected = (GetFridgeCookie("polar_items") || "").split(',').filter(x => x);
+                if (!collected.includes(newItem)) {
+                    collected.push(newItem);
+                    SetFridgeCookie("polar_items", collected.join(','));
+                }
+                window.history.replaceState({}, document.title, window.location.pathname);
+            }
+        }
+
+        function updateInventoryUI() {
+            let collected = (GetFridgeCookie("polar_items") || "").split(',').filter(x => x);
+            collected.forEach(item => { 
+                $(`#slot-${item}`).addClass('collected'); 
+                $(`#row-${item}`).css('opacity', '0.3').find('.book-name').append(' (수집됨)');
+            });
+            if (collected.length === REQUIRED_ITEMS.length) {
+                setTimeout(() => { 
+                    // alert("모든 쓰레기를 수집했습니다! 분리배출 하러 이동합니다."); 
+                    // window.location.href = "question_6.html"; 
+                    
+                            showResultModal({ success: true, message: "쓰레기 버리기 성공!", pageNum: 5 }); 
+                }, 800);
+            }
+        }
+    </script>
+</body>
+</html>

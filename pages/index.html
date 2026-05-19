@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>북극곰에게 냉장고를 - 시작</title>
+    <!-- Bootstrap 5 CSS -->
+    <link rel="stylesheet" href="../lib/bootstrap-5.3.8-dist/css/bootstrap.min.css" />
+    <link rel="stylesheet" href="../lib/Pretendard-1.3.9/web/static/pretendard.css" />
+    
+    <style>
+        /* @import url('https://cdn.jsdelivr.net/gh/orioncactus/pretendard/dist/web/static/pretendard.css'); */
+        
+        :root {
+            --main-color: #5076A1; /* 쨍하지 않은 차분한 스틸 블루 */
+            --bg-color: #F8FAFC;   /* 차분한 그레이 톤 배경 */
+        }
+
+        body { 
+            background-color: var(--bg-color); 
+            font-family: 'Pretendard', sans-serif; 
+            height: 100vh; 
+            overflow: hidden; 
+            color: #334155;
+        }
+
+        .index-container { 
+            display: flex; 
+            flex-direction: column; 
+            justify-content: center; 
+            align-items: center; 
+            height: 100%; 
+            padding: 30px; 
+        }
+        
+        /* 표지 이미지 설정 (비율 고정) */
+        .image-cover { 
+            max-height: 60vh; 
+            width: auto; 
+            border-radius: 20px; 
+            box-shadow: 0 4px 15px rgba(0,0,0,0.08); 
+            margin-bottom: 25px; 
+            display: block; 
+        }
+
+        /* 이름 입력 영역 */
+        .input-group-custom { 
+            display: none; 
+            margin-bottom: 15px; 
+        } 
+
+        .user-input { 
+            width: 100%; 
+            padding: 15px; 
+            border-radius: 15px; 
+            border: 1px solid #CBD5E1; 
+            margin-bottom: 15px; 
+            text-align: center; 
+            font-size: 1.1rem; 
+        }
+
+        /* 시작 버튼 (이미지 너비에 동기화) */
+        .start-btn { 
+            border-radius: 15px; 
+            font-weight: bold; 
+            font-size: 1.1rem; 
+            background-color: var(--main-color); 
+            border: none; 
+            padding: 18px; 
+            color: white; 
+            box-shadow: 0 4px 10px rgba(80,118,161,0.2); 
+            transition: 0.2s; 
+        }
+
+        .start-btn:active { 
+            transform: scale(0.98); 
+            background-color: #3F5E81; 
+        }
+    </style>
+</head>
+<body>
+
+    <div class="index-container">
+        <!-- 1. 책 표지 이미지 (image_6.png) -->
+        <img src="../img/book_cover.png" id="cover-image" class="image-cover" alt="Cover">
+
+        <!-- 2. 이름 입력 영역 (기존 쿠키 없을 때만 노출) -->
+        <div id="name-input-section" class="input-group-custom">
+            <input type="text" id="user-name" class="user-input" placeholder="이름을 입력해 주세요" maxlength="10">
+        </div>
+
+        <!-- 3. 핵심 액션 버튼 -->
+        <button id="main-btn" class="start-btn">시작하기</button>
+    </div>
+
+    <!-- jQuery -->
+    <script src="../lib/jquery-3.6.0.min.js"></script>
+    <script>
+        // [Fridge Cookie 유틸리티]
+        const FridgeCookie = {
+            set: (name, val) => {
+                let d = new Date();
+                d.setTime(d.getTime() + (24 * 60 * 60 * 1000)); // 1일 유지
+                document.cookie = `${name}=${encodeURIComponent(val)};expires=${d.toUTCString()};path=/`;
+            },
+            get: (name) => {
+                let v = document.cookie.match('(^|;) ?' + name + '=([^;]*)(;|$)');
+                return v ? decodeURIComponent(v[2]) : null;
+            }
+        };
+
+        $(document).ready(function() {
+            const savedName = FridgeCookie.get('fridge_name');
+            const savedIdx = FridgeCookie.get('fridge_idx');
+            const status = FridgeCookie.get('fridge_status');
+
+            // [Logic] 페이지 로드 시 상태 체크 및 분기
+            if (status === 'finished') {
+                location.href = 'finish.html'; // 최종 완료 상태면 결과 페이지로
+            } else if (savedName && savedIdx) {
+                $('#main-btn').text('이어서 진행하기'); // 진행 중이면 버튼 텍스트 변경
+            } else {
+                $('#name-input-section').show(); // 데이터 없으면 이름 입력창 노출
+            }
+
+            // 시작/이어하기 버튼 클릭 이벤트
+            $('#main-btn').click(function() {
+                if (!savedName) {
+                    const name = $('#user-name').val();
+                    if (!name) { 
+                        alert("이름을 입력해주세요!"); 
+                        return; 
+                    }
+                    // 초기 데이터 세팅
+                    const startTime = Date.now();
+                    FridgeCookie.set('fridge_start_time', startTime);
+                    FridgeCookie.set('fridge_name', name);
+                    FridgeCookie.set('fridge_idx', 0);
+                    FridgeCookie.set('fridge_status', 'playing');
+                    location.href = 'question_0.html';
+                } else {
+                    // 마지막으로 진행했던 문제 번호로 이동
+                    location.href = `question_${savedIdx}.html`;
+                }
+            });
+
+            // 갤럭시 S26 최적화: 버튼 너비를 이미지 너비와 일치시킴
+            $('#cover-image').on('load', function() {
+                const imgWidth = $(this).width();
+                if (imgWidth > 0) {
+                    $('#main-btn, #user-name').css('width', imgWidth + 'px');
+                }
+            }).each(function() {
+                if(this.complete) $(this).trigger('load');
+            });
+        });
+    </script>
+</body>
+</html>

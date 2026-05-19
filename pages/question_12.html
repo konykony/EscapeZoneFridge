@@ -1,0 +1,288 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>북극곰 프로젝트 - 문제 12</title>
+    
+    <link rel="stylesheet" href="../lib/bootstrap-5.3.8-dist/css/bootstrap.min.css" />
+    <link rel="stylesheet" href="../lib/Pretendard-1.3.9/web/static/pretendard.css" />
+    <link rel="stylesheet" href="../css/common.css">
+
+    <style>
+        * { box-sizing: border-box !important; }
+        :root { --p-blue: #1d4ed8; --bg-gray: #f4f7fa; }
+        
+        body, html { 
+            background-color: var(--bg-gray); height: 100%; margin:0; padding:0; 
+            overflow: hidden; -webkit-user-select:none; user-select:none; 
+        }
+        
+        #wrap { display: flex; flex-direction: column; height: 100vh; width: 100%; }
+        
+        main { 
+            display: block; padding: 95px 20px 10px; 
+            max-width: 500px; margin: 0 auto; width: 100%;
+            height: calc(100vh - 60px); overflow: hidden; 
+        }
+
+        
+
+        /* 현재 작업 단계 창 */
+        .action-canvas {
+            width: 100%; height: 105px; background: #ffffff; border-radius: 20px; 
+            position: relative; border: 2px solid #e2e8f0; display: flex; 
+            flex-direction: column; align-items: center; justify-content: center; 
+            margin-bottom: 15px; overflow: hidden;
+        }
+        .canvas-bg-display { text-align: center; pointer-events: none; }
+        .canvas-bg-display small { display: block; font-size: 0.75rem; color: #94a3b8; font-weight: 800; }
+        #bg-count-box { font-size: 3rem; font-weight: 900; color: #cbd5e1; line-height: 1; }
+        #bg-count-box span { font-size: 1.5rem; color: #cbd5e1; font-weight: 800; }
+
+        /* 도구함 영역 - 크기 및 간격 최적화 */
+        .tool-container {
+            width: 100%; background: #ffffff; border-radius: 20px; 
+            border: 2px solid #e2e8f0; padding: 12px; margin-bottom: 15px;
+        }
+        .tool-header {
+            font-size: 0.9rem; font-weight: 800; color: #475569; 
+            margin-bottom: 12px; display: flex; align-items: center; padding-left: 5px;
+        }
+        .tool-header::before {
+            content: ''; display: inline-block; width: 4px; height: 14px; 
+            background: var(--p-blue); margin-right: 8px; border-radius: 2px;
+        }
+        
+        .tool-grid { 
+            display: grid; grid-template-columns: repeat(5, 1fr); 
+            gap: 6px; width: 100%; 
+        }
+
+        .tool-btn {
+            background: #fff; border-radius: 12px; padding: 10px 0; text-align: center;
+            border: 1.5px solid #f1f5f9; cursor: pointer; position: relative;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.02);
+            touch-action: manipulation; -webkit-tap-highlight-color: transparent;
+        }
+        .tool-btn:active { background: #f8fafc; border-color: #3b82f6; transform: scale(0.95); }
+        
+        .tool-btn span { font-size: 1.8rem; display: block; pointer-events: none; margin-bottom: 2px; }
+        .tool-btn b { font-size: 0.75rem; color: #334155; display: block; font-weight: 800; pointer-events: none; white-space: nowrap; }
+
+        /* 하단 버튼 - 플랫 디자인 및 그림자 제거 */
+        .btn-row { display: grid; grid-template-columns: 1fr 2.5fr; gap: 12px; width: 100%; height: 52px; }
+        .btn-game { 
+            height: 100%; border-radius: 15px; border: none; 
+            font-weight: 900; font-size: 1.1rem; color: #fff;
+            box-shadow: none !important; transition: all 0.1s;
+        }
+        .btn-reset { background: #94a3b8; }
+        .btn-confirm { background: var(--p-blue); }
+        .btn-game:active { filter: brightness(0.9); transform: translateY(1px); }
+
+        .ani-icon { font-size: 3.5rem; z-index: 10; display: none; position: absolute; }
+        #v-tree { font-size: 5rem; display: none; z-index: 20; position: absolute; }
+    </style>
+</head>
+<body>
+    <div id="wrap">
+        <header id="common-header"></header>
+        <main>
+            <div class="instruction">적당한 도구를 사용해서 나무심기를 완료하세요.</div>
+            
+            <div class="action-canvas" id="canvas">
+                <div class="canvas-bg-display">
+                    <small>현재 작업 단계</small>
+                    <div id="bg-count-box"><span id="bg-count-current">0</span><span>/24</span></div>
+                </div>
+                <div class="ani-icon" id="ani-tool"></div>
+                <div id="v-tree">🌳</div>
+            </div>
+
+            <div class="tool-container">
+                <div class="tool-header">도구함</div>
+                <div class="tool-grid" id="tool-grid"></div>
+            </div>
+
+            <div class="btn-row">
+                <button class="btn-game btn-reset" onclick="resetGame()">초기화</button>
+                <button class="btn-game btn-confirm" onclick="verify()">공정 완료 확인</button>
+            </div>
+        </main>
+        <footer id="common-footer"></footer>
+    </div>
+
+    <script src="../lib/jquery-3.6.0.min.js"></script>
+    <script src="../js/common.js"></script>
+    <script>
+        const PAGE_NUM = 12;
+        const TOTAL_MAX = 24; 
+        const GOAL_FLOW = [
+            {id:"목장갑", n:1, icon:"🧤"}, {id:"곡괭이", n:4, icon:"⛏️"}, {id:"삽", n:3, icon:"🥄"}, 
+            {id:"상토", n:2, icon:"⛰️"}, {id:"비료", n:2, icon:"💩"}, {id:"쇠갈퀴", n:5, icon:"🔱"}, 
+            {id:"묘목", n:1, icon:"🌱"}, {id:"물뿌리개", n:3, icon:"🚿"}, {id:"이름표", n:1, icon:"🏷️"}, {id:"전정가위", n:2, icon:"✂️"}
+        ];
+
+        // 힌트 데이터
+        window.hints = [
+            "수목 식재 표준 운용 지침서를 참조하세요.",
+            "지침서에 써 있는 도구와 횟수를 확인하세요.",
+            "목장갑 1회, 곡괭이 4회, 삽 3회, 상토 2회, 비료 2회, 쇠갈퀴 5회, 묘목 1회, 물뿌리개 3회, 이름표 1회, 전정가위 2회를 순서대로 클릭하세요."
+        ];
+        
+        let history = [];
+
+        $(document).ready(() => { 
+            initializeUI(PAGE_NUM); 
+            renderRandomTools(); 
+            updateDisplay(); 
+        });
+
+        function renderRandomTools() {
+            const grid = $('#tool-grid').empty();
+            const shuffled = [...GOAL_FLOW].sort(() => Math.random() - 0.5);
+            shuffled.forEach(t => {
+                grid.append(`<div class="tool-btn" onclick="press('${t.id}','${t.icon}')"><span>${t.icon}</span><b>${t.id}</b></div>`);
+            });
+        }
+
+        function press(id, icon) {
+            if (history.length >= TOTAL_MAX) return;
+
+            // common.js에 구현된 사운드 재생
+            if(typeof Snd !== 'undefined') Snd.play('click'); 
+
+            history.push(id);
+            updateDisplay();
+
+            // 도구 애니메이션 효과
+            $('#ani-tool').text(icon).stop(true, true).show().css({opacity: 1, transform: 'scale(1.5)', top: '50%'})
+               .animate({opacity: 0, top: '40%'}, 400, function() { $(this).hide(); });
+
+            // 24회 완료 시 자동 검증
+            if (history.length === TOTAL_MAX) setTimeout(verify, 500);
+        }
+
+        function updateDisplay() {
+            $('#bg-count-current').text(history.length);
+        }
+
+        function resetGame(silent = false) {
+            history = [];
+            updateDisplay();
+            $('#v-tree').hide();
+            $('.canvas-bg-display').show();
+            if(!silent) alert("작업 기록이 초기화되었습니다.");
+        }
+
+        // function verify() {
+        //     const currentCount = history.length;
+
+        //     // 중간 점검 로직
+        //     if (currentCount === 0) {
+        //         if(typeof Snd !== 'undefined') Snd.play('info'); 
+        //         alert("도구를 선택하여 수목 식재 공정을 시작하세요!");
+        //         return;
+        //     }
+
+        //     if (currentCount < TOTAL_MAX) {
+        //         if(typeof Snd !== 'undefined') Snd.play('info'); 
+        //         alert(`아직 공정이 남았습니다!\n현재 진행: ${currentCount} / ${TOTAL_MAX}`);
+        //         return;
+        //     }
+
+        //     // 정답 검증 로직
+        //     let temp = [...history], success = true;
+        //     for (let step of GOAL_FLOW) {
+        //         const work = temp.splice(0, step.n);
+        //         if (work.length < step.n || !work.every(v => v === step.id)) {
+        //             success = false; break;
+        //         }
+        //     }
+            
+        //     if (success) {
+        //         if(typeof Snd !== 'undefined') Snd.play('success'); 
+        //         // [추가] 12번 문제 완료 시간(타임스탬프)을 쿠키에 저장
+        //         const endTime = new Date().getTime();
+        //         FridgeCookie.set('fridge_end_time', endTime);
+                
+        //         // 상태를 'completed_12' 등으로 변경하여 흐름 관리 가능
+        //         FridgeCookie.set('fridge_status', 'completed_12');
+        //         setTimeout(() => {
+        //             $('.canvas-bg-display').hide();
+        //             $('#v-tree').fadeIn(800);
+        //             alert("공정 완료! 나무 심기에 성공했습니다.");
+        //             if (typeof runTemperatureSequence === 'function') setTimeout(() => runTemperatureSequence(PAGE_NUM), 1500);
+        //         }, 300);
+        //     } else {
+        //         if(typeof Snd !== 'undefined') Snd.play('fail'); 
+        //         setTimeout(() => {
+        //             alert("지침서와 내용이 다릅니다. 다시 시도해 보세요!");
+        //             resetGame(true);
+        //         }, 300);
+        //     }
+        // }
+        function verify() {
+            const currentCount = history.length;
+
+            // 중간 점검 로직
+            if (currentCount === 0) {
+                if(typeof Snd !== 'undefined') Snd.play('info'); 
+                alert("도구를 선택하여 수목 식재 공정을 시작하세요!");
+                return;
+            }
+
+            if (currentCount < TOTAL_MAX) {
+                if(typeof Snd !== 'undefined') Snd.play('info'); 
+                alert(`아직 공정이 남았습니다!\n현재 진행: ${currentCount} / ${TOTAL_MAX}`);
+                return;
+            }
+
+            // 정답 검증 로직
+            let temp = [...history], success = true;
+            for (let step of GOAL_FLOW) {
+                const work = temp.splice(0, step.n);
+                if (work.length < step.n || !work.every(v => v === step.id)) {
+                    success = false; break;
+                }
+            }
+            
+            if (success) {
+                if(typeof Snd !== 'undefined') Snd.play('success'); 
+                
+                // 1. 종료 시간 저장
+                const endTime = new Date().getTime();
+                SetFridgeCookie('fridge_end_time', endTime); // FridgeCookie.set 대신 Get/Set 형식을 맞춤
+                SetFridgeCookie('fridge_status', 'completed_12');
+                
+                // 2. 시각적 피드백 (나무 등장)
+                $('.canvas-bg-display').hide();
+                $('#v-tree').fadeIn(800);
+                
+                // 3. [핵심 수정] 알림 후 결과 페이지로 이동
+                setTimeout(() => {
+                    alert("공정 완료! 나무 심기에 성공했습니다.");
+                    
+                    // 만약 특정 연출 함수(온도 하강 등)가 있다면 실행하고, 없으면 바로 이동
+                    if (typeof runTemperatureSequence === 'function') {
+                        runTemperatureSequence(PAGE_NUM);
+                        // 연출 종료 예상 시간 뒤에 페이지 이동
+                        setTimeout(() => { location.href = 'ending.html'; }, 3000);
+                    } else {
+                        // 연출 함수가 없으면 즉시 이동
+                        location.href = 'record.html';
+                    }
+                }, 500);
+
+            } else {
+                if(typeof Snd !== 'undefined') Snd.play('fail'); 
+                setTimeout(() => {
+                    alert("지침서와 내용이 다릅니다. 다시 시도해 보세요!");
+                    resetGame(true);
+                }, 300);
+            }
+        }
+    </script>
+</body>
+</html>

@@ -1,0 +1,191 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>북극곰 프로젝트 - 문제 1</title>
+    
+    <link rel="stylesheet" href="../lib/bootstrap-5.3.8-dist/css/bootstrap.min.css" />
+    <link rel="stylesheet" href="../lib/Pretendard-1.3.9/web/static/pretendard.css" />
+    <link rel="stylesheet" href="../css/common.css">
+    
+    <style>
+        body, html { margin: 0; padding: 0; height: 100vh; background-color: white; font-family: 'Pretendard', sans-serif; overflow: hidden; }
+
+        /* [핵심 수정] 잘림 방지 및 유연한 레이아웃 */
+        main {
+            margin-top: var(--header-height);
+            /* 100vh 대신 가변 높이(dvh)를 사용하고 최소 높이를 확보합니다. */
+            min-height: calc(100dvh - var(--header-height) - var(--footer-height));
+            padding: 20px; 
+            display: flex; 
+            flex-direction: column; 
+            align-items: center; 
+            /* justify-content: center를 빼고 상단부터 차례로 정렬하여 잘림 방지 */
+            justify-content: flex-start; 
+            box-sizing: border-box;
+            overflow-y: auto; /* 내용이 길어지면 내부 스크롤 허용 */
+            -webkit-overflow-scrolling: touch;
+        }
+
+        .maze-grid {
+            display: grid; 
+            grid-template-columns: repeat(7, 1fr); 
+            grid-auto-rows: 1fr;
+            gap: 2px; 
+            width: 100%; 
+            /* 화면 높이에 따라 미로 크기가 유동적으로 조절되도록 설정 */
+            max-width: min(350px, 45vh); 
+            background: var(--border-color);
+            padding: 2px; 
+            border: 2px solid var(--border-color);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+            margin-bottom: 20px;
+        }
+
+        .cell {
+            background: white; 
+            aspect-ratio: 1/1; 
+            display: flex; 
+            align-items: center; 
+            justify-content: center;
+            font-weight: 800; 
+            font-size: 1.1rem; 
+            cursor: pointer; 
+            user-select: none; 
+            color: #334155; 
+            transition: 0.2s;
+        }
+
+        .cell.selected { background-color: #D1E1F0; font-weight: 900; }
+        .cell.big-cell { grid-column: span 2; grid-row: span 2; aspect-ratio: auto; padding: 5px; }
+        .cell img { width: 100%; height: 100%; object-fit: contain; pointer-events: none; }
+
+        .reset-action-btn {
+            padding: 12px 30px;
+            background-color: #64748B;
+            color: white;
+            border: none;
+            border-radius: 12px;
+            font-weight: 800;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: 0.2s;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            margin-bottom: 10px;
+            flex-shrink: 0;
+        }
+
+        .reset-action-btn:active { transform: scale(0.95); background-color: #475569; }
+    </style>
+</head>
+<body>
+
+    <header id="common-header"></header>
+
+    <main>
+        <div class="instruction">
+            📍 해변에서 출발해 도서관까지 가는 길을 찾으세요. 지나는 숫자는 작은 수에서 큰 수로 이어져야 합니다.
+        </div>
+
+        <div id="maze" class="maze-grid"></div>
+
+        <button id="reset-maze" class="reset-action-btn">경로 초기화</button>
+    </main>
+
+    <footer id="common-footer"></footer>
+
+    <script src="../lib/jquery-3.6.0.min.js"></script>
+    <script src="../js/common.js"></script>
+    <script>
+        window.hints = [
+            "시작은 해변(좌측 상단)이고 마지막은 도서관(우측 하단) 입니다. 해변부터 눌러주세요.",
+            "해변(좌측 상단) 바로 아래 '1'부터 시작해 보세요.",
+            "해변↓1↓2→3↓4↓5↓6→7↑8→9↓10→도서관"
+        ];
+
+        const gridLayout = [
+            ['S', 'X', '2', '3', '4', '5', '9'],
+            ['X', 'X', '1', '2', '3', '7', '1'],
+            ['2', '1', '1', '8', '1', '2', '6'],
+            ['4', '2', '3', '10', '3', '6', '9'],
+            ['3', '4', '4', '7', '5', '10', '10'],
+            ['4', '10', '5', '8', '9', 'E', 'X'],
+            ['10', '4', '6', '7', '10', 'X', 'X']
+        ];
+        let selectedPath = [];
+
+        function initMaze() {
+            const maze = $('#maze');
+            gridLayout.forEach((row, r) => {
+                row.forEach((val, c) => {
+                    if (val === 'X') return;
+                    let cellClass = 'cell';
+                    let displayVal = val;
+                    if (val === 'S') { cellClass += ' big-cell'; displayVal = '<img src="https://img.icons8.com/emoji/96/beach-with-umbrella.png">'; }
+                    else if (val === 'E') { cellClass += ' big-cell'; displayVal = '<img src="https://img.icons8.com/emoji/96/department-store.png">'; }
+                    const cell = $(`<div class="${cellClass}" data-r="${r}" data-c="${c}">${displayVal}</div>`);
+                    cell.click(function() { toggleCell(r, c, val, $(this)); });
+                    maze.append(cell);
+                });
+            });
+        }
+
+        function isAdjacent(r1, c1, v1, r2, c2, v2) {
+            const getCoords = (r, c, v) => {
+                if (v === 'S') return [[0,0], [0,1], [1,0], [1,1]];
+                if (v === 'E') return [[5,5], [5,6], [6,5], [6,6]];
+                return [[r, c]];
+            };
+            const c1List = getCoords(r1, c1, v1), c2List = getCoords(r2, c2, v2);
+            for (let p1 of c1List) for (let p2 of c2List) if (Math.abs(p1[0]-p2[0])<=1 && Math.abs(p1[1]-p2[1])<=1) return true;
+            return false;
+        }
+
+        function toggleCell(r, c, val, el) {
+            const id = val === 'S' ? 'START' : (val === 'E' ? 'END' : `${r},${c}`);
+            if (selectedPath.length > 0 && selectedPath[selectedPath.length-1].id === id) {
+                selectedPath.pop(); el.removeClass('selected'); return;
+            }
+            if (!selectedPath.length) { if (val !== 'S') return; }
+            else {
+                const last = selectedPath[selectedPath.length-1];
+                if (!isAdjacent(last.r, last.c, last.val, r, c, val) || selectedPath.find(p => p.id === id)) return;
+            }
+            selectedPath.push({ r, c, val, id }); el.addClass('selected');
+            if (val === 'E') validate();
+        }
+
+        function validate() {
+            const nums = selectedPath.filter(p => !isNaN(parseInt(p.val))).map(p => parseInt(p.val));
+            const correctSequence = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10];
+            let ok = (nums.length === correctSequence.length);
+
+            if (ok) {
+                for (let i = 0; i < correctSequence.length; i++) {
+                    if (nums[i] !== correctSequence[i]) { ok = false; break; }
+                }
+            }
+            
+            showResultModal({
+                success: ok,
+                message: ok ? '성공적으로 도서관에 도착했습니다.' : '1부터 10까지 순서대로 지나가야 합니다! 다시 찾아보세요.',
+                onRetry: () => { 
+                    selectedPath = []; 
+                    $('.cell').removeClass('selected'); 
+                },
+                pageNum: 1 
+            });
+        }
+
+        $(document).ready(() => { 
+            initializeUI(1); 
+            initMaze(); 
+            $('#reset-maze').click(function() {
+                selectedPath = []; 
+                $('.cell').removeClass('selected'); 
+            });
+        });
+    </script>
+</body>
+</html>

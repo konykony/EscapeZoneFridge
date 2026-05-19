@@ -1,0 +1,256 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>북극곰 프로젝트 - 문제 4</title>
+    
+    <link rel="stylesheet" href="../lib/bootstrap-5.3.8-dist/css/bootstrap.min.css" />
+    <link rel="stylesheet" href="../lib/Pretendard-1.3.9/web/static/pretendard.css" />
+    <link rel="stylesheet" href="../css/common.css">
+
+    <style>
+        body, html { margin: 0; padding: 0; height: 100vh; background-color: white; font-family: 'Pretendard', sans-serif; overflow: hidden; }
+
+        main {
+            margin-top: var(--header-height);
+            height: calc(100vh - var(--header-height) - var(--footer-height));
+            display: flex; flex-direction: column;
+            background: white;
+            padding: 15px;
+        }
+
+        /* [1. 구글 스타일 상단 고정 헤더] */
+        .google-fixed-header {
+            background: white;
+            border-bottom: 1px solid #f2f2f2;
+            /* padding-top: 15px; */
+            width: 100%;
+            z-index: 100;
+        }
+        .search-top-row {
+            display: flex; align-items: center; padding: 0 5px; margin-bottom: 15px; gap: 15px;
+        }
+        .google-mini-logo { font-size: 1.4rem; font-weight: 800; letter-spacing: -1px; }
+        .google-mini-logo span:nth-child(1) { color: #4285F4; }
+        .google-mini-logo span:nth-child(2) { color: #EA4335; }
+        .google-mini-logo span:nth-child(3) { color: #FBBC05; }
+        .google-mini-logo span:nth-child(4) { color: #4285F4; }
+        .google-mini-logo span:nth-child(5) { color: #34A853; }
+        .google-mini-logo span:nth-child(6) { color: #EA4335; }
+
+        .search-bar-rounded {
+            flex: 1; height: 44px; background: white; border: 1px solid #dfe1e5;
+            border-radius: 24px; display: flex; align-items: center; padding: 0 15px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.08); font-size: 1rem; color: #202124;
+        }
+
+        /* [2. 구글 검색 탭 - 가로 폭 확보 및 균등 배열] */
+        .search-tabs-scroll {
+            display: flex; 
+            justify-content: space-between; /* 양 끝까지 넓게 배치 */
+            /* padding: 0 20px;  */
+            font-size: 0.95rem; 
+            color: #5f6368;
+            border-bottom: 1px solid #f2f2f2;
+        }
+        .tab-item { 
+            padding: 10px 0 8px 0; 
+            border-bottom: 3px solid transparent; 
+            white-space: nowrap; 
+            flex: 1; 
+            text-align: center;
+        }
+        .tab-item.active { color: #1a73e8; border-bottom-color: #1a73e8; font-weight: 700; }
+
+        /* [3. 검색 결과 영역 - 오른쪽 스크롤 바 노출] */
+        .search-results-container {
+            flex: 1; 
+            overflow-y: scroll; /* 스크롤바 항상 공간 확보 */
+            padding: 15px 16px;
+            -webkit-overflow-scrolling: touch;
+        }
+
+        .search-item { margin-bottom: 28px; text-align: left; }
+        .search-site-info { display: flex; align-items: center; gap: 8px; margin-bottom: 6px; }
+        .site-favicon { width: 18px; height: 18px; background: #f1f3f4; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 10px; }
+        .site-url-text { color: #202124; font-size: 0.85rem; }
+
+        .search-title { 
+            color: #1a0dab; font-size: 1.25rem; font-weight: 400; 
+            text-decoration: none; display: block; margin-bottom: 6px; line-height: 1.4;
+            cursor: pointer;
+        }
+        .search-title:hover { text-decoration: underline; }
+
+        /* [미리보기 2줄 제한 설정] */
+        .search-desc { 
+            color: #4d5156; font-size: 0.95rem; line-height: 1.6; 
+            word-break: keep-all; 
+            display: -webkit-box;
+            -webkit-line-clamp: 2; /* 2줄까지만 표시 */
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        .highlight { color: #202124; font-weight: 700; }
+
+        .next-action-area { padding: 40px 0 60px; text-align: center; border-top: 1px solid #f2f2f2; background: #fafafa; }
+        .next-btn-final {
+            background: #1a73e8; color: white; border: none;
+            padding: 14px 40px; border-radius: 24px; font-weight: 700; font-size: 1rem;
+            box-shadow: 0 4px 10px rgba(26, 115, 232, 0.2);
+        }
+
+        /* [4. 상세 보기 전용 팝업 모달] */
+        .detail-modal-overlay {
+            display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.6); z-index: 2000; align-items: center; justify-content: center;
+        }
+        .detail-modal-content {
+            background: white; width: 92%; max-width: 480px; border-radius: 16px;
+            padding: 28px; box-shadow: 0 15px 40px rgba(0,0,0,0.4);
+        }
+        .detail-modal-title { font-size: 1.3rem; font-weight: 800; color: #1a0dab; margin-bottom: 18px; border-bottom: 1px solid #eee; padding-bottom: 12px; text-align: left; }
+        .detail-modal-body { font-size: 1.05rem; color: #3c4043; line-height: 1.7; text-align: left; word-break: keep-all; }
+        .detail-modal-close { margin-top: 24px; width: 100%; padding: 14px; background: #f8f9fa; border: 1px solid #dadce0; border-radius: 10px; font-weight: 800; color: #3c4043; }
+
+        /* 스크롤바 디자인 (브라우저 기본 스타일 활용) */
+        .search-results-container::-webkit-scrollbar { width: 6px; }
+        .search-results-container::-webkit-scrollbar-track { background: #f1f1f1; }
+        .search-results-container::-webkit-scrollbar-thumb { background: #dadce0; border-radius: 10px; }
+    </style>
+</head>
+<body>
+
+    <header id="common-header"></header>
+
+    <main>
+        <div class="google-fixed-header">
+            <div class="search-top-row">
+                <div class="google-mini-logo">
+                    <span>G</span><span>o</span><span>o</span><span>g</span><span>l</span><span>e</span>
+                </div>
+                <div class="search-bar-rounded">
+                    북극에 냉장고 필요한 이유 <span class="ms-auto" style="color:#70757a; font-size: 0.9rem;">🔍</span>
+                </div>
+            </div>
+            <div class="search-tabs-scroll">
+                <div class="tab-item active">전체</div>
+                <div class="tab-item">이미지</div>
+                <div class="tab-item">뉴스</div>
+                <div class="tab-item">동영상</div>
+                <div class="tab-item">쇼핑</div>
+            </div>
+        </div>
+
+        <div class="search-results-container">
+            <div class="search-item">
+                <div class="search-site-info">
+                    <div class="site-favicon">🌱</div>
+                    <span class="site-url-text">https://eco-knowledge.net › climate</span>
+                </div>
+                <a class="search-title" data-idx="0">지구 온난화와 이산화탄소(CO₂)의 관계</a>
+                <div class="search-desc" id="desc-0">
+                    지구 대기 중 약 <span class="highlight">0.04%</span>를 차지하는 이산화탄소는 열을 흡수하는 성질이 있어 지구의 온도를 유지합니다. 하지만 최근 배출량이 급증하며 북극의 온도가 너무 빠르게 상승하고 있습니다. 이로 인해 해빙이 녹는 속도가 가속화되고 있습니다.
+                </div>
+            </div>
+
+            <div class="search-item">
+                <div class="search-site-info">
+                    <div class="site-favicon">❄️</div>
+                    <span class="site-url-text">https://arctic-watch.org › polar-bear</span>
+                </div>
+                <a class="search-title" data-idx="1">북극곰이 냉장고를 찾는 진짜 이유</a>
+                <div class="search-desc" id="desc-1">
+                    북극곰은 얼음(해빙) 위에서 사냥하며 살아갑니다. 기온 상승으로 얼음이 녹으면서 사냥터를 잃고 굶주리는 북극곰에게 <span class="highlight">해빙은 생존을 위해 필수적인 '냉장고'</span>와 같은 역할을 합니다. 얼음이 사라지면 북극곰은 더 이상 먹이를 찾을 수 없습니다.
+                </div>
+            </div>
+
+            <div class="search-item">
+                <div class="search-site-info">
+                    <div class="site-favicon">🌍</div>
+                    <span class="site-url-text">https://save-the-ice.com › report</span>
+                </div>
+                <a class="search-title" data-idx="2">탄소 중립이 필요한 이유와 북극곰의 생존</a>
+                <div class="search-desc" id="desc-2">
+                    <span class="highlight">탄소 중립</span>은 실질적인 이산화탄소 배출량을 '0'으로 만드는 것입니다. 이를 통해 지구가 더워지는 것을 막고, 북극곰의 유일한 보금자리인 북극의 얼음을 지켜낼 수 있습니다. 전 세계적인 협력이 필요한 시점입니다.
+                </div>
+            </div>
+
+            <div class="next-action-area">
+                <p class="text-muted small mb-3">찾으시는 정보를 모두 확인하셨나요?</p>
+                <button class="next-btn-final" onclick="showStoryModal()">내용 확인 완료</button>
+            </div>
+        </div>
+    </main>
+
+    <footer id="common-footer"></footer>
+
+    <div class="detail-modal-overlay">
+        <div class="detail-modal-content">
+            <div class="detail-modal-title" id="m-title"></div>
+            <div class="detail-modal-body" id="m-body"></div>
+            <button class="detail-modal-close">확인 후 닫기</button>
+        </div>
+    </div>
+
+    <script src="../lib/jquery-3.6.0.min.js"></script>
+    <script src="../js/common.js"></script>
+
+    <script>
+        const PAGE_NUM = 4;
+        window.hints = [
+            "화면을 맨 아래로 이동시키고 [내용 확인 완료], [미션 계속하기] 버튼을 차례로 누르세요", 
+            "파란색 재활용 쓰레기통 주변을 자세히 살펴보세요.", 
+            "재활용 쓰레기통의 QR코드를 찍어보세요."
+        ];
+
+        $(document).ready(function() {
+            initializeUI(PAGE_NUM);
+
+            // [상세 보기 팝업 클릭 핸들러]
+            $('.search-title').on('click', function() {
+                const idx = $(this).data('idx');
+                const title = $(this).text();
+                
+                // .search-desc에 적용된 2줄 제한은 CSS 효과일 뿐이므로, 
+                // .html()로 가져오면 전체 텍스트를 그대로 팝업에 띄울 수 있습니다.
+                const content = $('#desc-' + idx).html(); 
+
+                $('#m-title').text(title);
+                $('#m-body').html(content);
+                $('.detail-modal-overlay').css('display', 'flex').hide().fadeIn(200);
+            });
+
+            $('.detail-modal-close, .detail-modal-overlay').on('click', function(e) {
+                if ($(e.target).is('.detail-modal-close') || $(e.target).is('.detail-modal-overlay')) {
+                    $('.detail-modal-overlay').fadeOut(200);
+                }
+            });
+        });
+
+        function showStoryModal() {
+            const storyMessage = `북극곰이 왜 냉장고를 보내 달라고 했는지 알게 되었습니다.<br><br>
+                                 바닷가에서 도서관까지 달려왔더니 너무 덥습니다.<br>
+                                 냉동고에서 아이스크림을 하나 꺼내 먹어 봅시다.<br><br>
+                                 아이스크림을 다 먹었다면 포장지를 물로 헹군 뒤 <span style="color:#3B7FB9; font-weight:800;">파란색 재활용 쓰레기통</span>에 버리세요.`;
+
+            showResultModal({
+                success: true,
+                message: storyMessage,
+                pageNum: PAGE_NUM
+            });
+
+            $('.modal-main-btn').off('click').on('click', function() {
+                $('.common-modal-overlay').fadeOut(300);
+                SetFridgeCookie('q4_complete', 'Y');
+
+            }).text('미션 계속하기');
+
+            $('.modal-title-style').text('ℹ️ 정보 확인 완료'); 
+            $('.modal-body-text').html(storyMessage).css({'text-align': 'left', 'word-break': 'keep-all'});
+        }
+    </script>
+</body>
+</html>

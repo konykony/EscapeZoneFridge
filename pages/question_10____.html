@@ -1,0 +1,272 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>북극곰 프로젝트 - 문제 10</title>
+    
+    <link rel="stylesheet" href="../lib/bootstrap-5.3.8-dist/css/bootstrap.min.css" />
+    <link rel="stylesheet" href="../lib/Pretendard-1.3.9/web/static/pretendard.css" />
+    <link rel="stylesheet" href="../css/common.css">
+
+    <style>
+        :root { 
+            --p-blue: #0ea5e9; 
+            --h-yellow: #f8e72b; 
+            --gray-fill: #94a3b8; 
+        }
+        body, html { background-color: #f1f5f9; margin: 0; padding: 0; overflow-x: hidden; -webkit-user-select:none; user-select:none; }
+        
+        main { 
+            min-height: calc(100vh - var(--header-height, 60px) - var(--footer-height, 60px)); 
+            display: flex; flex-direction: column; align-items: center; padding: 20px; 
+        }
+
+        /* [요청반영] 안내 메시지 영역 스타일 */
+        /* .instruction {
+            width: 100%; max-width: 380px; background: #ffffff; border: 2px solid #3b82f6; 
+            border-radius: 20px; padding: 15px; margin-bottom: 20px; text-align: center;
+            font-weight: 700; color: #1e40af; line-height: 1.5; box-shadow: 0 4px 10px rgba(59, 130, 246, 0.1);
+        } */
+
+        .preview-card {
+            width: 100%; max-width: 380px; height: 320px; background: #ffffff; border-radius: 35px;
+            position: relative; margin-bottom: 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.05); border: 2px solid #e2e8f0;
+            overflow: hidden;
+        }
+
+        /* z-index: 1 고정 */
+        #game-overlay {
+            position: absolute; inset: 0; background: #ffffff; z-index: 1; border-radius: 35px;
+            display: flex; flex-direction: column; align-items: center; justify-content: center;
+        }
+        
+        /* 메시지는 최상단 독립 (z-index: 20) */
+        .status-msg { 
+            width: 100%; text-align: center; font-weight: 800; font-size: 1.15rem; line-height: 1.4;
+            position: absolute; top: 25px; left: 0; z-index: 20; padding: 0 20px;
+        }
+        #timer-text { color: #f43f5e; font-weight: 900; font-size: 1.3rem; }
+
+        /* 카운트다운 숫자 (z-index: 30) */
+        .count-text { font-size: 5.5rem; font-weight: 900; color: var(--p-blue); z-index: 30; }
+
+        /* [요청반영] top 60%, height 150px 고정 (z-index: 10) */
+        .flag-unit { 
+            position: absolute; width: 120px; height: 150px; 
+            top: 60%; left: 50%; transform: translate(-50%, -50%);
+            opacity: 0; z-index: 10; pointer-events: none; 
+        }
+        
+        .part { transition: all 0.2s; background: transparent; border: 1.5px solid #cbd5e1; box-sizing: border-box; }
+        .finial-draw { position: absolute; left: 0px; top: -10px; width: 26px; height: 26px; border-radius: 50%; z-index: 50; }
+        .pole-draw { position: absolute; left: 8px; bottom: 0; width: 10px; height: 100%; border-radius: 5px; z-index: 30; }
+        .canvas-draw { position: absolute; left: 18px; top: 15px; width: 95px; height: 65px; z-index: 30; }
+        .star-draw { 
+            position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%); 
+            width: 35px; height: 35px; z-index: 60; display: none; 
+            clip-path: polygon(50% 0%, 61% 35%, 98% 35%, 68% 57%, 79% 91%, 50% 70%, 21% 91%, 32% 57%, 2% 35%, 39% 35%);
+        }
+
+        .highlight { background-color: var(--h-yellow) !important; border: 5px solid #eab308 !important; animation: pulse 0.6s infinite alternate; z-index: 100 !important; }
+        .gray-out { background-color: var(--gray-fill) !important; border-color: #64748b !important; }
+        @keyframes pulse { from { opacity: 1; } to { opacity: 0.6; } }
+
+        .control-section { width: 100%; max-width: 450px; text-align: center; }
+        .btn-game { padding: 18px 60px; border-radius: 50px; border: none; background: var(--p-blue); color: white; font-weight: 900; font-size: 1.4rem; cursor: pointer; box-shadow: 0 6px 15px rgba(14,165,233,0.3); }
+
+        .category-group { display: none; }
+        .category-group.active { display: block; }
+        .category-title { font-size: 1.1rem; font-weight: 800; color: #1e293b; margin-bottom: 20px; }
+        .option-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px; }
+        .opt-card { background: white; border-radius: 20px; padding: 15px 5px; text-align: center; cursor: pointer; box-shadow: 0 4px 10px rgba(0,0,0,0.04); }
+        .color-chip { width: 40px; height: 40px; margin: 0 auto 10px; border-radius: 10px; border: 1px solid #eee; }
+    </style>
+</head>
+<body>
+    <header id="common-header"></header>
+
+    <main>
+        <div class="instruction">
+            앗! 행사장 깃발이 어떻게 생겼는지 기억이 나지 않아요. 깃발의 모습을 잘 기억해 보고 똑같이 복원해 볼까요?
+        </div>
+
+        <div class="preview-card">
+            <p class="status-msg" id="display-msg"></p>
+            <div id="game-overlay">
+                <div id="countdown-layer" style="display:none;">
+                    <div class="count-text" id="cnt-num">3</div>
+                </div>
+            </div>
+            
+            <div class="flag-unit" id="f-unit">
+                <div class="part finial-draw" id="d-finial"></div>
+                <div class="part pole-draw" id="d-pole"></div>
+                <div class="part canvas-draw" id="d-canvas"><div class="part star-draw" id="d-star"></div></div>
+            </div>
+        </div>
+
+        <div class="control-section">
+            <div class="btn-action-area" id="action-zone">
+                <button class="btn-game" id="main-btn" onclick="startSequence()">미션 시작</button>
+            </div>
+
+            <div id="assembly-zone" style="display: none;">
+                <div class="category-group active" id="st-1"><p class="category-title">1. 꼭대기 장식(깃봉) 색깔은?</p><div class="option-grid"><div class="opt-card" onclick="pick('finial', 'purple')"><div class="color-chip" style="background:#a855f7"></div><div class="label">보라</div></div><div class="opt-card" onclick="pick('finial', 'orange')"><div class="color-chip" style="background:#f97316"></div><div class="label">주황</div></div><div class="opt-card" onclick="pick('finial', 'cyan')"><div class="color-chip" style="background:#06b6d4"></div><div class="label">청록</div></div></div></div>
+                <div class="category-group" id="st-2"><p class="category-title">2. 긴 막대기(깃대) 색깔은?</p><div class="option-grid"><div class="opt-card" onclick="pick('pole', 'black')"><div class="color-chip" style="background:#000000;"></div><div class="label">검정</div></div><div class="opt-card" onclick="pick('pole', 'yellow')"><div class="color-chip" style="background:#facc15;"></div><div class="label">노랑</div></div><div class="opt-card" onclick="pick('pole', 'brown')"><div class="color-chip" style="background:#78350f;"></div><div class="label">갈색</div></div></div></div>
+                <div class="category-group" id="st-3"><p class="category-title">3. 깃발 배경 색깔은?</p><div class="option-grid"><div class="opt-card" onclick="pick('color', 'green')"><div class="color-chip" style="background:#22c55e"></div><div class="label">초록</div></div><div class="opt-card" onclick="pick('color', 'red')"><div class="color-chip" style="background:#ef4444"></div><div class="label">빨강</div></div><div class="opt-card" onclick="pick('color', 'blue')"><div class="color-chip" style="background:#3b82f6"></div><div class="label">파랑</div></div></div></div>
+                <div class="category-group" id="st-4"><p class="category-title">4. 가운데 별 무늬 색깔은?</p><div class="option-grid"><div class="opt-card" onclick="pick('star', 'white')"><div class="color-chip" style="background:#ffffff;"></div><div class="label">흰색</div></div><div class="opt-card" onclick="pick('star', 'gold')"><div class="color-chip" style="background:#ffd700;"></div><div class="label">금색</div></div><div class="opt-card" onclick="pick('star', 'black')"><div class="color-chip" style="background:#000000;"></div><div class="label">검정</div></div></div></div>
+            </div>
+        </div>
+    </main>
+
+    <footer id="common-footer"></footer>
+
+    <script src="../lib/jquery-3.6.0.min.js"></script>
+    <script src="../js/common.js"></script>
+    <script>
+
+        // 코니님이 정하신 3단계 힌트
+        window.hints = [
+            "눈을 크게 뜨고 깃발 색깔을 순식간에 외워봐요!",
+            "매번 새로운 색깔이 나타나니 집중해서 봐주세요!",
+            "기억이 가물가물하다면 친구와 힘을 합쳐볼까요"
+        ];
+        const PAGE_NUM = 10;
+        let obsTime = parseInt(localStorage.getItem('f_time')) || 1; 
+        let curStep = 1, ans = {}, user = { finial:null, pole:null, color:null, star:null };
+        const C = {
+            finial: { purple:'#a855f7', orange:'#f97316', cyan:'#06b6d4' },
+            pole:   { black:'#000000', yellow:'#facc15', brown:'#78350f' },
+            color:  { green:'#22c55e', red:'#ef4444', blue:'#3b82f6' },
+            star:   { white:'#ffffff', gold:'#ffd700', black:'#000000' }
+        };
+
+        $(document).ready(() => { if (typeof initializeUI === "function") initializeUI(PAGE_NUM); });
+
+        function retryDirectly() {
+            curStep = 1; user = { finial:null, pole:null, color:null, star:null };
+            $('#action-zone, #assembly-zone').hide();
+            $('.category-group').removeClass('active').hide();
+            $('#st-1').addClass('active').show();
+            startSequence();
+        }
+
+        function startSequence() {
+            $('#action-zone, #assembly-zone').hide();
+            $('#display-msg').html('깃발의 모습을 잘 기억하세요!').show();
+            $('#countdown-layer').show();
+            $('#f-unit').css('opacity', 0);
+            
+            let n = 3; $('#cnt-num').text(n);
+            const timer = setInterval(() => {
+                n--; if(n > 0) $('#cnt-num').text(n);
+                else { clearInterval(timer); showPreview(); }
+            }, 1000);
+        }
+
+        function showPreview() {
+            const keys = { finial:['purple','orange','cyan'], pole:['black','yellow','brown'], color:['green','red','blue'], star:['white','gold','black'] };
+            for(let k in keys) ans[k] = keys[k][Math.floor(Math.random()*3)];
+            
+            $('.part').removeClass('highlight gray-out');
+            drawFlag(ans); $('#d-star').show();
+            
+            $('#countdown-layer').hide();
+            $('#f-unit').css('opacity', 1);
+            $('#game-overlay').show(); 
+
+            $('#display-msg').html(`남은 시간: <span id="timer-text">${obsTime}</span>초`);
+            let timeLeft = obsTime;
+            const previewTimer = setInterval(() => {
+                timeLeft--;
+                if(timeLeft > 0) $('#timer-text').text(timeLeft);
+                else { clearInterval(previewTimer); startAssembly(); }
+            }, 1000);
+        }
+
+        function startAssembly() {
+            resetFlag();
+            $('#display-msg').hide();
+            $('#assembly-zone').fadeIn(300);
+            guide();
+        }
+
+        function pick(type, val) {
+            user[type] = val; drawFlag(user); 
+            $(`#st-${curStep}`).hide(); curStep++;
+            if (curStep <= 4) { $(`#st-${curStep}`).addClass('active').show(); guide(); }
+            else { 
+                $('.part').removeClass('highlight gray-out'); 
+                verify(); // [요청반영] 즉시 판정
+            }
+        }
+
+        function guide() {
+            $('.part').removeClass('highlight gray-out'); $('#d-star').hide();
+            if (curStep === 1) { $('#d-finial').addClass('highlight'); $('#d-pole, #d-canvas').addClass('gray-out'); }
+            else if (curStep === 2) { $('#d-pole').addClass('highlight'); $('#d-finial, #d-canvas').addClass('gray-out'); }
+            else if (curStep === 3) { $('#d-canvas').addClass('highlight'); $('#d-finial, #d-pole').addClass('gray-out'); }
+            else if (curStep === 4) { $('#d-star').show().addClass('highlight'); $('#d-finial, #d-pole, #d-canvas').addClass('gray-out'); }
+        }
+
+        function drawFlag(d) {
+            if(d.finial) $('#d-finial').css({'background': C.finial[d.finial], 'border':'none'});
+            if(d.pole) $('#d-pole').css({'background': C.pole[d.pole], 'border':'none'});
+            if(d.color) $('#d-canvas').css({'background': C.color[d.color], 'border':'none'});
+            if(d.star) $('#d-star').show().css({'background': C.star[d.star], 'border':'none'});
+        }
+
+        function resetFlag() {
+            $('.part').css({'background':'transparent', 'border':'1.5px solid #cbd5e1'}).removeClass('highlight gray-out').hide();
+            $('.finial-draw, .pole-draw, .canvas-draw').show();
+            $('#f-unit').css('opacity', 1);
+        }
+
+        // function verify() {
+        //     const isOk = (ans.finial === user.finial) && (ans.pole === user.pole) && (ans.color === user.color) && (ans.star === user.star);
+        //     if(isOk) {
+        //         localStorage.removeItem('f_time');
+        //         $('#f-unit').css('opacity', 0);
+        //         showResultModal({ success: true, message: "완벽하게 복원했습니다!", pageNum: PAGE_NUM });
+        //     } else {
+        //         obsTime++; localStorage.setItem('f_time', obsTime);
+        //         $('#assembly-zone').hide();
+        //         $('#game-overlay').show();
+        //         drawFlag(ans); // [요청반영] 실패 시 정답 표시
+        //         $('#display-msg').html('<span class="text-danger">기억이 틀렸습니다!</span><br><small>다음 관찰 시간: ' + obsTime + '초</small>').show();
+        //         $('#action-zone').show();
+        //         $('#main-btn').text('재도전 하기').attr('onclick', 'retryDirectly()');
+        //         $('#f-unit').css('opacity', 1);
+        //     }
+        // }
+
+        function verify() {
+            const isOk = (ans.finial === user.finial) && (ans.pole === user.pole) && (ans.color === user.color) && (ans.star === user.star);
+            
+            if(isOk) {
+                localStorage.removeItem('f_time');
+                $('#f-unit').css('opacity', 0);
+                showResultModal({ success: true, message: "완벽하게 복원했습니다!", pageNum: PAGE_NUM });
+            } else {
+                obsTime++; 
+                localStorage.setItem('f_time', obsTime);
+                
+                // 1. 조립 구역 숨기기
+                $('#assembly-zone').hide();
+                
+                // 2. 오버레이(배경판)와 실패 메시지 표시
+                $('#game-overlay').show();
+                $('#display-msg').html('<span class="text-danger">기억이 틀렸습니다!</span><br><small>다음 관찰 시간: ' + obsTime + '초</small>').show();
+                
+                // 3. [요청반영] 실패 시 깃발을 완전히 숨김
+                $('#f-unit').css('opacity', 0);
+                
+                // 4. 재도전 버튼 표시
+                $('#action-zone').show();
+                $('#main-btn').text('재도전 하기').attr('onclick', 'retryDirectly()');
+            }
+        }
+    </script>
+</body>
+</html>

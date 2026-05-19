@@ -1,0 +1,320 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>북극곰 프로젝트 - 문제 7</title>
+    
+    <link rel="stylesheet" href="../lib/bootstrap-5.3.8-dist/css/bootstrap.min.css" />
+    <link rel="stylesheet" href="../lib/Pretendard-1.3.9/web/static/pretendard.css" />
+    <link rel="stylesheet" href="../css/common.css">
+
+    <style>
+        :root {
+            --bg-dark: #0f172a;
+            --panel-bg: rgba(30, 41, 59, 0.85);
+            --accent-blue: #38bdf8;
+            --accent-amber: #fbbf24;
+            --accent-red: #f43f5e;
+        }
+
+        body, html { margin: 0; padding: 0; height: 100vh; background-color: var(--bg-dark); font-family: 'Pretendard', sans-serif; overflow: hidden; color: #f8fafc; touch-action: none; }
+        
+        body::before {
+            content: ""; position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+            background: radial-gradient(circle at 50% 50%, #1e293b 0%, #0f172a 100%);
+            z-index: -1;
+        }
+
+        main { display: flex; flex-direction: column; align-items: center; justify-content: flex-start; padding: 10px 15px; gap: 8px; height: 100%; }
+
+        .alert-banner {
+            width: 100%; max-width: 400px; background: rgba(244, 63, 94, 0.2); border: 1px solid rgba(244, 63, 94, 0.5);
+            padding: 8px; border-radius: 12px; text-align: center; font-size: 0.8rem; font-weight: 800; color: #ffffff;
+            animation: pulse 2s infinite;
+        }
+
+        .dashboard {
+            display: grid; grid-template-columns: repeat(4, 1fr); gap: 5px;
+            width: 100%; max-width: 400px; background: var(--panel-bg);
+            padding: 10px 5px; border-radius: 18px; border: 1px solid rgba(255,255,255,0.2);
+            backdrop-filter: blur(10px);
+        }
+        .stat-card { display: flex; flex-direction: column; align-items: center; gap: 0; }
+        .stat-label { font-size: 0.6rem; color: #94a3b8; font-weight: 700; }
+        .stat-value { font-size: 0.9rem; font-weight: 800; font-family: 'Monaco', monospace; color: #ffffff; }
+
+        .grid-parent {
+            width: 100%; max-width: 400px; 
+            border: 1px solid rgba(255, 255, 255, 0.1); 
+            border-radius: 22px; 
+            padding: 0; 
+            background: rgba(15, 23, 42, 0.4);
+            overflow: hidden; 
+            position: relative;
+        }
+
+        .game-grid {
+            display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; 
+            width: 100%; padding: 12px;
+            background: rgba(15, 23, 42, 0.5); 
+            transition: filter 0.3s ease; 
+        }
+        
+        .game-grid.timeout-active { filter: grayscale(1) brightness(0.5) blur(2px); pointer-events: none; }
+
+        .power-slot {
+            aspect-ratio: 1 / 1; background: #262f3e; border-radius: 10px;
+            display: flex; align-items: center; justify-content: center;
+            border: 2.5px solid transparent; box-sizing: border-box;
+            transition: all 0.1s; cursor: pointer;
+        }
+
+        /* ON 상태: 테두리만 표시 */
+        .power-slot.is-on { 
+            border-color: rgba(251, 191, 36, 0.6); 
+        }
+        
+        .btn-sprite {
+            width: 38px; height: 38px; background-image: url('../img/spritesheet_power.png');
+            background-size: 76px 38px; background-repeat: no-repeat; z-index: 2; pointer-events: none;
+        }
+        .power-slot.is-off .btn-sprite { background-position: 0 0; opacity: 0.1; filter: grayscale(1); }
+        
+        .power-slot.is-on .btn-sprite { 
+            background-position: -38px 0; 
+            opacity: 1; 
+        }
+
+        .power-slot.fail-click { 
+            border: 3px solid var(--accent-red) !important; 
+            box-shadow: 0 0 15px var(--accent-red) !important; 
+            animation: shake 0.3s; 
+            z-index: 10; 
+        }
+
+        /* [수정] 오버레이 테두리 복구 */
+        #start-overlay {
+            position: absolute; top:0; left:0; width:100%; height:100%;
+            background: rgba(15, 23, 42, 0.96); z-index: 100;
+            display: flex; flex-direction: column; align-items: center; 
+            justify-content: center; 
+            padding-bottom: 30px;
+            border-radius: inherit;
+        }
+
+        /* [수정] 실패 시 안쪽 테두리(inset shadow)를 사용하여 모서리 깨짐 방지 */
+        #start-overlay.fail-active { 
+            background: rgba(45, 10, 10, 0.98); 
+            box-shadow: inset 0 0 0 2px var(--accent-red); /* 테두리 효과 복구 */
+        }
+
+        .overlay-content { 
+            border: 1px solid rgba(255,255,255,0.2); 
+            padding: 15px; 
+            border-radius: 18px; 
+            background: rgba(30, 41, 59, 0.85); 
+            backdrop-filter: blur(10px);
+            width: 85%;
+            max-width: 300px;
+        }
+        
+        #overlay-title { font-weight: 800; font-size: 1.1rem; margin-bottom: 5px !important; }
+        #overlay-desc { font-size: 0.75rem; margin-bottom: 12px !important; line-height: 1.4; color: #cbd5e1; }
+        
+        .mission-btn {
+            background: var(--accent-blue); color: #0f172a; border: none;
+            padding: 8px 35px; border-radius: 10px; font-weight: 800; font-size: 1rem;
+            box-shadow: 0 0 15px rgba(56, 189, 248, 0.4);
+        }
+
+        @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.6; } }
+        @keyframes shake { 0%, 100% { transform: translateX(0); } 25% { transform: translateX(-8px); } 75% { transform: translateX(8px); } }
+    </style>
+</head>
+<body>
+    <header id="common-header"></header>
+    <main>
+        <div class="alert-banner">📍 주의! 잘못된 버튼을 누르면 즉시 게임이 종료됩니다!</div>
+        
+        <div class="dashboard">
+            <div class="stat-card"><span class="stat-label">단계</span><span id="level-display" class="stat-value level">5</span></div>
+            <div class="stat-card"><span class="stat-label">시간</span><span id="timer-text" class="stat-value timer">10.0초</span></div>
+            <div class="stat-card"><span class="stat-label">목표</span><span id="goal-display" class="stat-value">25</span></div>
+            <div class="stat-card"><span class="stat-label">차단</span><span id="score-text" class="stat-value">0</span></div>
+        </div>
+
+        <div class="grid-parent"> 
+            <div class="game-grid" id="game-board">
+                <div class="power-slot is-off" data-index="0"><div class="btn-sprite"></div></div>
+                <div class="power-slot is-off" data-index="1"><div class="btn-sprite"></div></div>
+                <div class="power-slot is-off" data-index="2"><div class="btn-sprite"></div></div>
+                <div class="power-slot is-off" data-index="3"><div class="btn-sprite"></div></div>
+                <div class="power-slot is-off" data-index="4"><div class="btn-sprite"></div></div>
+                <div class="power-slot is-off" data-index="5"><div class="btn-sprite"></div></div>
+                <div class="power-slot is-off" data-index="6"><div class="btn-sprite"></div></div>
+                <div class="power-slot is-off" data-index="7"><div class="btn-sprite"></div></div>
+                <div class="power-slot is-off" data-index="8"><div class="btn-sprite"></div></div>
+                <div class="power-slot is-off" data-index="9"><div class="btn-sprite"></div></div>
+                <div class="power-slot is-off" data-index="10"><div class="btn-sprite"></div></div>
+                <div class="power-slot is-off" data-index="11"><div class="btn-sprite"></div></div>
+                <div class="power-slot is-off" data-index="12"><div class="btn-sprite"></div></div>
+                <div class="power-slot is-off" data-index="13"><div class="btn-sprite"></div></div>
+                <div class="power-slot is-off" data-index="14"><div class="btn-sprite"></div></div>
+                <div class="power-slot is-off" data-index="15"><div class="btn-sprite"></div></div>
+            </div>
+
+            <div id="start-overlay"> 
+                <div class="overlay-content text-center">
+                    <h3 id="overlay-title">정밀 에너지 차단</h3>
+                    <p id="overlay-desc">사용하지 않는 기계의 전원은 꺼 두어야 합니다.<br>켜진 버튼만 정확히 터치하세요.</p>
+                    <button class="mission-btn" onclick="startGame()">미션 개시</button>
+                </div>
+            </div>
+        </div>
+    </main>
+    <footer id="common-footer"></footer>
+
+    <script src="../lib/jquery-3.6.0.min.js"></script>
+    <script src="../js/common.js"></script>
+
+    <script>
+
+        
+        // 힌트 데이터
+        window.hints = [
+            "시간 내에 전원을 꺼 주세요",
+            "속도가 점점 느려집니다.",
+            "행운을 빌어요!"
+        ];
+
+        // const LEVEL_SETTINGS = {
+        //     5: { time: 10, goal: 25, interval: 300 }, 
+        //     4: { time: 12, goal: 20, interval: 450 },
+        //     3: { time: 15, goal: 15, interval: 650 },
+        //     2: { time: 20, goal: 12, interval: 850 },
+        //     1: { time: 25, goal: 10, interval: 1000 }
+        // };
+
+        const LEVEL_SETTINGS = {
+            5: { time: 15, goal: 22, interval: 200 },   // 기존 10초 -> 20초 (여유 증대)
+            4: { time: 20, goal: 20, interval: 200 },   // 기존 12초 -> 25초
+            3: { time: 25, goal: 18, interval: 200 },   // 기존 15초 -> 30초
+            2: { time: 35, goal: 15, interval: 200 },   // 기존 20초 -> 35초
+            1: { time: 45, goal: 10, interval: 200 }   // 기존 25초 -> 45초 (충분한 연습 가능)
+        };
+
+        const LEVEL_COLORS = {
+            5: "#f43f5e", 4: "#fb923c", 3: "#facc15", 2: "#22d3ee", 1: "#38bdf8"  
+        };
+
+        let currentLevel = 5; 
+        let score = 0;
+        let timeLeft = 0;
+        let gameActive = false;
+        let gameTimer = null;
+        let spawnInterval = null;
+
+        $(document).ready(function() {
+            initializeUI(7);
+            updateLevelUI();
+        });
+
+        function updateLevelUI() {
+            const config = LEVEL_SETTINGS[currentLevel];
+            $('#level-display').text(currentLevel).css('color', LEVEL_COLORS[currentLevel]);
+            $('#goal-display').text(config.goal);
+            $('#timer-text').text(config.time.toFixed(1) + '초');
+            $('#score-text').text(0);
+        }
+
+        function startGame() {
+            const config = LEVEL_SETTINGS[currentLevel];
+            $('#start-overlay').fadeOut(200).removeClass('fail-active');
+            $('#game-board').removeClass('timeout-active');
+            $('#overlay-title').css('color', LEVEL_COLORS[currentLevel]);
+            
+            score = 0;
+            timeLeft = config.time;
+            gameActive = true;
+
+            clearInterval(gameTimer);
+            clearTimeout(spawnInterval);
+
+            gameTimer = setInterval(() => {
+                timeLeft -= 0.1;
+                $('#timer-text').text(Math.max(0, timeLeft).toFixed(1) + '초');
+                if (timeLeft <= 0) endGame(false, "시간초과"); 
+            }, 100);
+
+            spawnPower();
+        }
+
+        function spawnPower() {
+            if (!gameActive) return;
+            if ($('.power-slot.is-on').length === 0) {
+                const slots = $('.power-slot.is-off');
+                const randomIdx = Math.floor(Math.random() * slots.length);
+                $(slots[randomIdx]).removeClass('is-off').addClass('is-on');
+            }
+            spawnInterval = setTimeout(spawnPower, LEVEL_SETTINGS[currentLevel].interval);
+        }
+
+        $('.power-slot').on('touchstart mousedown', function(e) {
+            e.preventDefault();
+            if (!gameActive) return;
+
+            const $this = $(this);
+            if ($this.hasClass('is-on')) {
+                $this.removeClass('is-on').addClass('is-off');
+                score++;
+                $('#score-text').text(score);
+                if (score >= LEVEL_SETTINGS[currentLevel].goal) endGame(true);
+            } else {
+                $this.addClass('fail-click');
+                endGame(false, "실수"); 
+            }
+        });
+
+        function endGame(isWin, reason) {
+            gameActive = false;
+            clearInterval(gameTimer);
+            clearTimeout(spawnInterval);
+
+            if (isWin) {
+                $('.power-slot').removeClass('is-on').addClass('is-off');
+                showResultModal({ success: true, message: `완벽한 차단! ${currentLevel}단계를 클리어했습니다.`, pageNum: 7 });
+            } else {
+                if (reason === "시간초과") $('#game-board').addClass('timeout-active');
+                $('#start-overlay').addClass('fail-active');
+
+                let failTitle, failDesc;
+                if (currentLevel > 1) {
+                    currentLevel--;
+                    const config = LEVEL_SETTINGS[currentLevel];
+                    if (reason === "실수") {
+                        failTitle = "조작 미스!";
+                        failDesc = `잘못된 전원을 건드려 시스템이 과부하되었습니다.<br>안전을 위해 <b>${currentLevel}단계</b>로 이동합니다.`;
+                    } else {
+                        failTitle = "시간 초과!";
+                        failDesc = `에너지 누출 속도가 너무 빠릅니다.<br>긴급 대응 <b>${currentLevel}단계</b>로 조정합니다.`;
+                    }
+                } else {
+                    failTitle = "미션 실패";
+                    failDesc = `전력이 모두 유출되었습니다.<br>1단계부터 신중하게 다시 시작하세요.`;
+                }
+
+                $('#overlay-title').html(failTitle).css('color', '#f43f5e');
+                $('#overlay-desc').html(failDesc);
+
+                setTimeout(() => {
+                    $('.power-slot').removeClass('is-on fail-click').addClass('is-off');
+                    updateLevelUI();
+                    $('#game-board').removeClass('timeout-active');
+                    $('#start-overlay').fadeIn(300); 
+                }, 800); 
+            }
+        }
+    </script>
+</body>
+</html>

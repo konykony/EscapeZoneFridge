@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>북극곰 프로젝트 - 문제 2</title>
+    <!-- Bootstrap 5 CSS -->
+     
+    <link rel="stylesheet" href="../lib/bootstrap-5.3.8-dist/css/bootstrap.min.css" />
+    <link rel="stylesheet" href="../lib/Pretendard-1.3.9/web/static/pretendard.css" />
+    <link rel="stylesheet" href="../css/common.css">
+    <style>
+        /* [COMMON CSS] */
+       
+        /* [QUESTION 2 SPECIFIC CSS] */
+        main {
+            margin-top: var(--header-height);
+            height: calc(100vh - var(--header-height) - var(--footer-height));
+            display: flex; flex-direction: column; align-items: center; justify-content: center;
+            padding: 20px; position: relative;
+        }
+
+        /* 도서관 배경 분위기 연출 */
+        /* .library-backdrop {
+            position: absolute; inset: 0;
+            background: linear-gradient(rgba(248, 250, 252, 0.8), rgba(248, 250, 252, 0.8)), 
+                        url('library_bg.jpg'); 
+            background-size: cover; background-position: center; z-index: -1;
+        } */
+        /* 도서관 내부 이미지 경로 */
+
+        .instruction { font-size: 1.1rem; font-weight: 800; color: #334155; text-align: center; margin-bottom: 15px; word-break: keep-all; }
+
+        /* 동물언어 편지 (춤추는 사람 암호) */
+        .letter-box {
+            width: 100%; max-width: 480px;
+            background: #fff; padding: 10px; border-radius: 20px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.08); margin-bottom: 15px;
+            border: 1px solid #e2e8f0;
+        }
+        .letter-img { width: 100%; border-radius: 15px; }
+
+        /* 입력 및 제출 영역 */
+        .input-group-custom { width: 100%; max-width: 360px; }
+        .answer-field {
+            width: 100%; padding: 18px; border-radius: 20px; border: 2px solid #cbd5e1;
+            font-size: 1.2rem; font-weight: 800; text-align: center; margin-bottom: 15px;
+            outline: none; transition: 0.3s; background: white;
+        }
+        .answer-field:focus { border-color: var(--main-color); box-shadow: 0 0 15px rgba(80,118,161,0.15); }
+
+        .btn-submit {
+            width: 100%; padding: 18px; border-radius: 20px; border: none;
+            background-color: var(--main-color); color: white;
+            font-size: 1.2rem; font-weight: 900; cursor: pointer; transition: 0.2s;
+        }
+        .btn-submit:active { transform: scale(0.97); }
+
+        /* 숨겨진 해독표 탐색 버튼 (도서관 벽의 장식처럼 배치) */
+        .wall-inspect-trigger {
+            position: absolute; right: 20px; top: 20px;
+            width: 60px; height: 60px; border-radius: 50%;
+            background: rgba(255, 255, 255, 0.9); border: 2px solid #e2e8f0;
+            display: flex; align-items: center; justify-content: center;
+            cursor: pointer; font-size: 1.2rem; box-shadow: 0 4px 10px rgba(0,0,0,0.05);
+            animation: pulse 2s infinite;
+        }
+        @keyframes pulse { 0% { box-shadow: 0 0 0 0 rgba(80,118,161,0.4); } 70% { box-shadow: 0 0 0 10px rgba(80,118,161,0); } 100% { box-shadow: 0 0 0 0 rgba(80,118,161,0); } }
+
+        /* 해독표 모달 레이어 */
+        #decoding-overlay {
+            display: none; position: fixed; inset: 0; background: rgba(15, 23, 42, 0.9);
+            z-index: 5000; align-items: center; justify-content: center; padding: 20px;
+        }
+        .decoding-wrap { position: relative; width: 100%; max-width: 600px; }
+        .decoding-img { width: 100%; border-radius: 15px; border: 4px solid #fff; }
+        .btn-close-decoding { position: absolute; top: -50px; right: 0; color: white; font-size: 1.5rem; font-weight: 900; cursor: pointer; }
+    </style>
+</head>
+<body>
+
+    <!-- 상단 공통 헤더 (common.js에서 생성) -->
+    <header id="common-header"></header>
+
+    <main>
+        <div class="library-backdrop"></div>
+        
+        <!-- 벽면 조사 트리거 (해독표 찾기) -->
+        <!-- <div class="wall-inspect-trigger" onclick="openDecodingTable()">🔍</div> -->
+
+        <div class="instruction">
+            도서관에 도착했습니다.<br><strong>알맞은 해독표</strong>를 찾아 편지를 해독하세요.
+        </div>
+
+        <!-- 춤추는 사람 암호 이미지 (image_78abc9.png) -->
+        <div class="letter-box">
+            <img src="../img/secret_code.png" class="letter-img" alt="동물언어 편지">
+        </div>
+
+        <!-- 입력 영역 -->
+        <div class="input-group-custom">
+            <input type="text" id="user-answer" class="answer-field" placeholder="해독한 내용을 입력하세요" autocomplete="off">
+            <button class="btn-submit" onclick="validate()">해독 완료</button>
+        </div>
+    </main>
+
+    <!-- 하단 공통 푸터 (common.js에서 생성) -->
+    <footer id="common-footer"></footer>
+
+    <!-- 곰 발바닥 해독표 모달 (secret_code.jpg) -->
+    <div id="decoding-overlay">
+        <div class="decoding-wrap">
+            <span class="btn-close-decoding" onclick="closeDecodingTable()">닫기 ✕</span>
+            <img src="../img/secret_code.png" class="decoding-img" alt="곰발바닥 해독표">
+        </div>
+    </div>
+
+    <!-- 로직 스크립트 -->
+    <script src="../lib/jquery-3.6.0.min.js"></script>
+    <script src="../js/common.js"></script> <!-- 통합된 공통 JS 파일 -->
+    
+    <script>
+        const PAGE_NUM = 2;
+        const CORRECT_ANSWER_CLEAN = "냉장고보내줘"; // 공백 제거 기준 정답
+
+        // 요청하신 3단계 힌트 구성
+        window.hints = [
+            "도서관에서 곰 발바닥 그림이 있는 해독표를 찾아 보세요.",
+            "첫 번째 글자는 '냉' 입니다.",
+            "정답은 '냉장고 보내줘' 입니다."
+        ];
+
+        $(document).ready(function() {
+            initializeUI(2); 
+            // // UI 초기화
+            // if (typeof initializeUI === 'function') initializeUI(PAGE_NUM);
+            
+            // // 힌트 버튼 동작 할당
+            // $('.hint-btn').each(function(idx) {
+            //     $(this).off().on('click', function() {
+            //         alert(`[힌트 ${idx + 1}단계]\n\n${HINT_DATA[idx]}`);
+            //     });
+            // });
+        });
+
+        // 해독표 열기/닫기
+        function openDecodingTable() { $('#decoding-overlay').css('display', 'flex').hide().fadeIn(300); }
+        function closeDecodingTable() { $('#decoding-overlay').fadeOut(300); }
+
+        // 정답 검증
+        function validate() {
+            const val = $('#user-answer').val().trim();
+            const processedVal = val.replace(/\s+/g, ""); // 모든 공백 제거
+
+            const isCorrect = (processedVal === CORRECT_ANSWER_CLEAN);
+
+            // 통합 COMMON JS의 결과 모달 호출
+            showResultModal({
+                success: isCorrect,
+                message: isCorrect ? '성공적으로 암호를 해독했습니다!' : '해독한 내용이 잘못되었습니다. 해독표를 다시 꼼꼼히 살펴보세요.',
+                onRetry: () => { $('#user-answer').val('').focus(); },
+                pageNum: 2
+            });
+        }
+    </script>
+</body>
+</html>

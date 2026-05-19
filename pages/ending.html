@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>북극곰 프로젝트 - 엔딩</title>
+    
+    <link rel="stylesheet" href="../lib/bootstrap-5.3.8-dist/css/bootstrap.min.css" />
+    <link rel="stylesheet" href="../lib/Pretendard-1.3.9/web/static/pretendard.css" />
+    <link rel="stylesheet" href="../css/common.css">
+
+    <style>
+        * { box-sizing: border-box !important; }
+        body, html { 
+            background-color: #000; /* 영상 집중도를 위해 배경 검정 */
+            height: 100%; margin: 0; padding: 0; 
+            overflow: hidden; font-family: 'Pretendard', sans-serif;
+        }
+        
+        #wrap { position: relative; width: 100%; height: 100vh; }
+
+        /* [핵심] 전체 화면 비디오 스타일 */
+        #video-container {
+            position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+            background: #000; display: flex; align-items: center; justify-content: center;
+        }
+        
+        #endingVideo {
+            width: 100%; height: 100%;
+            object-fit: cover; /* 화면에 꽉 차게 채움 (비율에 따라 약간 잘릴 수 있음) */
+            /* object-fit: contain; 비율 유지가 중요하다면 이걸로 변경하세요 */
+        }
+
+        /* 영상 재생 중 안내 (선택 사항) */
+        #vdo-msg {
+            position: absolute; bottom: 20px; left: 0; width: 100%;
+            text-align: center; color: rgba(255,255,255,0.6);
+            font-size: 0.85rem; font-weight: 600; z-index: 10;
+            pointer-events: none;
+        }
+
+        /* [핵심] 영상 종료 후 나타날 버튼 레이어 */
+        #action-area { 
+            display: none; position: absolute; top: 0; left: 0;
+            width: 100%; height: 100%;
+            background: rgba(0, 0, 0, 0.6); /* 버튼이 잘 보이도록 배경 어둡게 */
+            z-index: 20; display: flex; flex-direction: column;
+            align-items: center; justify-content: center;
+            padding: 20px;
+        }
+
+        .success-msg {
+            color: #fff; text-align: center; margin-bottom: 30px;
+            animation: fadeInUp 0.8s ease-out;
+        }
+        .success-msg h1 { font-size: 2.2rem; font-weight: 900; margin-bottom: 10px; }
+        .success-msg p { font-size: 1.1rem; opacity: 0.9; font-weight: 600; }
+
+        .btn-next { 
+            background: #1d4ed8; color: #fff; border: none;
+            width: 100%; max-width: 320px; height: 64px;
+            border-radius: 20px; font-size: 1.3rem; font-weight: 900;
+            box-shadow: 0 6px 0 #172554; transition: all 0.1s;
+            animation: fadeInUp 1s ease-out;
+        }
+        .btn-next:active { transform: translateY(3px); box-shadow: 0 3px 0 #172554; }
+
+        @keyframes fadeInUp {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+    </style>
+</head>
+<body>
+    <div id="wrap">
+        <div id="video-container">
+            <video id="endingVideo" playsinline muted>
+                <source src="../img/ending_202605192007.mp4" type="video/mp4">
+            </video>
+        </div>
+
+        <div id="vdo-msg">영상이 재생 중입니다...</div>
+
+        <div id="action-area" style="display: none;">
+            <div class="success-msg">
+                <h1>MISSION CLEAR!</h1>
+                <p>축하합니다! 방탈출을 성공했습니다.</p>
+            </div>
+            <button class="btn-next" onclick="goNext()">다음</button>
+        </div>
+    </div>
+
+    <script src="../lib/jquery-3.6.0.min.js"></script>
+    <script src="../js/common.js"></script>
+    <script>
+        const vdo = document.getElementById('endingVideo');
+
+        $(document).ready(() => {
+            // 1. 영상 재생 시작
+            vdo.play().catch(() => {
+                $('#vdo-msg').text("화면을 터치하면 영상이 시작됩니다.");
+                $(document).one('click', () => {
+                    vdo.play();
+                    $('#vdo-msg').text("영상이 재생 중입니다...");
+                });
+            });
+
+            // 2. 영상 종료 시 이벤트
+            vdo.addEventListener('ended', () => {
+                $('#vdo-msg').hide();
+                $('#action-area').css('display', 'flex').hide().fadeIn(1000);
+            });
+        });
+
+        function goNext() {
+            const isTestMode = new URLSearchParams(window.location.search).get('type') === 'test';
+            if (isTestMode) {
+                window.location.href = 'test.html'; // 테스트 중이면 기록 안 남기고 복귀
+            } else {
+                // [핵심] 완료 시간 쿠키 저장 후 기록 페이지로!
+                SetFridgeCookie('fridge_end_time', new Date().getTime());
+                GetFridgeCookie('fridge_status', 'finished'); 
+                window.location.href = 'record.html';
+            }
+        }
+    </script>
+</body>
+</html>
