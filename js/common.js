@@ -193,7 +193,7 @@ function initializeUI(pageNum) {
 /**
  * 페이지별 힌트 시작 시간을 관리하는 함수 (테스트 모드 대응)
  */
-function initHintTimestamp(pageNum, isTestMode = false) {
+function initHintTimestamp(pageNum, isTestMode) {
     const cookieKey = 'start_time_p' + pageNum;
     
     // [1] 테스트 모드라면 쿠키를 보지도 쓰지도 않고 즉시 현재 시간을 반환
