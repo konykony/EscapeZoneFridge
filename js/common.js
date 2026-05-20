@@ -191,21 +191,25 @@ function initializeUI(pageNum) {
 }
 
 /**
- * 페이지별 힌트 시작 시간을 쿠키에서 가져오거나 새로 생성하는 함수
+ * 페이지별 힌트 시작 시간을 관리하는 함수 (테스트 모드 대응)
  */
-function initHintTimestamp(pageNum) {
+function initHintTimestamp(pageNum, isTestMode = false) {
     const cookieKey = 'start_time_p' + pageNum;
     
-    // 1. 쿠키를 가져오되, 없으면 빈 문자열("")로 초기화하여 에러 방지
+    // [1] 테스트 모드라면 쿠키를 보지도 쓰지도 않고 즉시 현재 시간을 반환
+    if (isTestMode) {
+        startTime = Date.now(); 
+        console.log(`[TEST Hint] p${pageNum} 테스트 모드: 쿠키를 사용하지 않습니다.`);
+        return startTime;
+    }
+
+    // [2] 일반 모드일 때만 쿠키 로직 실행
     let savedTime = GetFridgeCookie(cookieKey) || ""; 
 
-    // 2. 데이터가 유효한 숫자인지 체크
     if (savedTime !== "" && !isNaN(savedTime)) {
-        // 기존 기록이 있으면 숫자로 변환
         startTime = parseInt(savedTime);
         console.log(`[Hint] p${pageNum} 기존 시간 로드: ${startTime}`);
     } else {
-        // 기록이 없거나 비정상적이면 현재 시간으로 신규 생성
         startTime = Date.now();
         SetFridgeCookie(cookieKey, startTime);
         console.log(`[Hint] p${pageNum} 시간 신규 생성: ${startTime}`);
