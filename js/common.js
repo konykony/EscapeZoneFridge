@@ -138,19 +138,21 @@ function applyTempBarColor(pageNum) {
 
 // UI 및 보안 체크 초기화 메인 함수
 function initializeUI(pageNum) {
-    // 1. URL 파라미터 판정 (네이버 앱 대응을 위해 최상단 배치 및 대소문자 방어)
+    // 1. URL 파라미터 판정
     const urlParams = new URLSearchParams(window.location.search);
     const typeParam = (urlParams.get('type') || "").toLowerCase(); 
     const isTestMode = typeParam === 'test';
 
-    // 2. 데이터 로드 (테스트 모드일 때는 쿠키를 무시하고 가상 데이터 즉시 할당)
+    // 2. 데이터 로드
     let userName, fridgeIdx, fridgeStatus;
 
     if (isTestMode) {
         userName = "테스트대원";
-        fridgeIdx = pageNum;
+        fridgeIdx = pageNum; // [중요] 테스트 중인 현재 페이지 번호로 강제 설정
         fridgeStatus = "playing";
-        console.warn(`[TEST MODE] 네이버 앱 우회 모드 활성화 - ${pageNum}번 페이지`);
+        
+        // [추가] 쿠키와 상관없이 전역 변수나 시스템이 현재 페이지를 '진행 중'으로 인식하게 함
+        console.warn(`[TEST MODE] ${pageNum}번 페이지 테스트 시작 (기존 진행상황 무시)`);
     } else {
         userName = GetFridgeCookie('fridge_name') || "코니";
         fridgeIdx = parseInt(GetFridgeCookie('fridge_idx')) || 0;
@@ -164,26 +166,26 @@ function initializeUI(pageNum) {
         isTestMode: isTestMode
     };
 
-    // 3. 보안 및 정합성 체크 (실제 운영 모드에서만 실행)
+    // 3. 보안 및 정합성 체크
     if (!isTestMode) {
-        if (!checkSecurity(sessionData)) return; // 실패 시 여기서 error.html 이동
+        // 일반 모드일 때만 페이지 이탈 및 보안 체크 실행
+        if (!checkSecurity(sessionData)) return; 
         if (!checkPageConsistency(pageNum, sessionData.fridgeIdx)) return;
     }
 
     // 4. UI 렌더링
+    // sessionData를 인자로 넘겨서 내부에서도 testMode인지 알 수 있게 합니다.
     renderHeader(pageNum, sessionData.userName);
-    renderFooter();
+    renderFooter(sessionData); // [수정] 푸터 등에도 세션 정보를 넘겨 리다이렉트 방지
     injectModals();
     
     // 5. 온도바 색상 적용
     applyTempBarColor(pageNum);
 
-    // 6. 힌트 타임스탬프 초기화 (전역 startTime에 할당)
-    // 전역 변수 startTime이 선언되어 있다면 아래와 같이 값을 담아줍니다.
-    if (typeof startTime !== 'undefined') {
-        startTime = initHintTimestamp(pageNum);
+    // 6. 힌트 타임스탬프 초기화 (전역 hintBaseTime 사용 권장)
+    if (typeof hintBaseTime !== 'undefined') {
+        hintBaseTime = initHintTimestamp(pageNum);
     } else {
-        // 전역 변수가 없다면 함수만 실행하여 쿠키만 생성
         initHintTimestamp(pageNum);
     }
 }
