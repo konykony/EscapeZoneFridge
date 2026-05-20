@@ -184,9 +184,9 @@ function initializeUI(pageNum) {
 
     // 6. 힌트 타임스탬프 초기화 (전역 hintBaseTime 사용 권장)
     if (typeof hintBaseTime !== 'undefined') {
-        hintBaseTime = initHintTimestamp(pageNum);
+        hintBaseTime = initHintTimestamp(pageNum, isTestMode);
     } else {
-        initHintTimestamp(pageNum);
+        initHintTimestamp(pageNum, isTestMode);
     }
 }
 
