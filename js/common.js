@@ -191,19 +191,21 @@ function initializeUI(pageNum) {
 }
 
 /**
- * 페이지별 힌트 시작 시간을 관리하는 함수 (테스트 모드 대응)
+ * 페이지별 힌트 시작 시간을 관리하는 함수
  */
-function initHintTimestamp(pageNum, isTestMode) {
+function initHintTimestamp(pageNum, isTestMode = false) {
     const cookieKey = 'start_time_p' + pageNum;
     
-    // [1] 테스트 모드라면 쿠키를 보지도 쓰지도 않고 즉시 현재 시간을 반환
+    // [1] 테스트 모드라면? 
     if (isTestMode) {
-        startTime = Date.now(); 
-        console.log(`[TEST Hint] p${pageNum} 테스트 모드: 쿠키를 사용하지 않습니다.`);
+        // 현재 시간에서 5분(300초 * 1000ms)을 뺀 시간을 반환
+        // 이렇게 하면 elapsed 계산 시 300초가 되어 모든 힌트가 즉시 열립니다.
+        startTime = Date.now() - (5 * 60 * 1000); 
+        console.log(`[TEST Hint] p${pageNum} 테스트 모드: 5분 전 시간을 반환하여 힌트를 즉시 개방합니다.`);
         return startTime;
     }
 
-    // [2] 일반 모드일 때만 쿠키 로직 실행
+    // [2] 일반 모드 로직 (기존과 동일)
     let savedTime = GetFridgeCookie(cookieKey) || ""; 
 
     if (savedTime !== "" && !isNaN(savedTime)) {
