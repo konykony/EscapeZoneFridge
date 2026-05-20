@@ -38,23 +38,31 @@
         }
 
         .cert-container {
-            /* [수정] 너비를 조금 더 여유 있게 조정 */
-            width: 85%; 
-            /* [중요] max-width가 모바일 화면 너비(회전 후엔 높이)를 넘지 않게 조절 */
-            max-width: 90vh; 
-            min-width: unset; /* 너무 넓은 min-width는 제거하는 게 안전합니다 */
+            /* [수정] 회전 후 좌우 길이는 부모의 vh를 따라가야 합니다. */
+            width: 95vh; 
+            /* [수정] 회전 후 상하 길이는 부모의 vw를 따라갑니다. */
+            height: 85vw; 
+            
+            /* [수정] 너무 작아지지 않도록 최소 너비 확보 (좌우 꽉 차게) */
+            min-width: 760px; 
             
             background: #ffffff; 
             border: 8px solid #1d4ed8; 
             border-radius: 40px;
-            padding: 35px; 
+            padding: 30px; 
             text-align: center;
             box-shadow: 0 20px 50px rgba(0,0,0,0.1);
+            
             display: flex; 
             flex-direction: column; 
             align-items: center; 
-            justify-content: space-between;
+            justify-content: center; /* 내용 중앙 정렬 */
+            gap: 20px;
+            
+            /* 테두리가 안 잘리게 내부 계산 */
+            box-sizing: border-box; 
         }
+
 
         /* [수정] 책 제목 상단 배치 (진한 색상으로 변경하여 눈에 띄게 함) */
         .book-title { 
@@ -73,10 +81,16 @@
             display: flex; align-items: center; justify-content: center;
         }
         
+        /* 텍스트가 너무 크면 줄어들도록 조정 */
         .time-text { 
-            font-size: 8rem; font-weight: 950; color: #0f172a; 
-            line-height: 1; letter-spacing: -5px; 
-            white-space: nowrap; display: flex; align-items: baseline;
+            font-size: 7rem; /* 8rem에서 살짝 축소하여 여백 확보 */
+            font-weight: 950; 
+            color: #0f172a; 
+            line-height: 1; 
+            letter-spacing: -5px; 
+            white-space: nowrap; 
+            display: flex; 
+            align-items: baseline;
         }
         .time-text i { 
             font-style: normal; font-size: 2.8rem; font-weight: 900; 
