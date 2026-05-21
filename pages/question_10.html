@@ -14,22 +14,56 @@
             --p-blue: #0ea5e9; 
             --h-yellow: #fef08a; 
         }
-        body, html { background-color: #f1f5f9; margin: 0; padding: 0; overflow-x: hidden; -webkit-user-select:none; user-select:none; }
+
+        /* 1. 전체 레이아웃: 상단 밀착형 설정 */
+        body, html { 
+            background-color: #f1f5f9; 
+            margin: 0; padding: 0; 
+            overflow-x: hidden; 
+            -webkit-user-select:none; 
+            user-select:none; 
+        }
         
         main { 
-            min-height: calc(100vh - var(--header-height, 60px) - var(--footer-height, 60px)); 
-            display: flex; flex-direction: column; align-items: center; padding: 20px; 
+            /* 헤더/푸터 제외 영역 */
+            height: calc(100vh - var(--header-height, 60px) - var(--footer-height, 60px)); 
+            display: flex; 
+            flex-direction: column; 
+            align-items: center; 
+            /* [핵심] center 대신 flex-start를 써서 위로 바짝 붙임 */
+            justify-content: flex-start; 
+            padding: 15px 20px; 
+            gap: 12px; /* 요소 간 간격 조절 */
+            box-sizing: border-box;
         }
 
+        /* 2. 상단 지시문 슬림화 */
         .instruction {
-            width: 100%; max-width: 420px; background: #ffffff; border: 2px solid #3b82f6; 
-            border-radius: 20px; padding: 15px; margin-bottom: 20px; text-align: center;
-            font-weight: 700; color: #1e40af; line-height: 1.5; box-shadow: 0 4px 10px rgba(59, 130, 246, 0.1);
+            width: 100%; 
+            max-width: 420px; 
+            background: #ffffff; 
+            border: 2px solid #3b82f6; 
+            border-radius: 20px; 
+            padding: 12px 15px; 
+            text-align: center;
+            font-weight: 700; 
+            color: #1e40af; 
+            font-size: 0.95rem;
+            line-height: 1.4; 
+            box-shadow: 0 4px 10px rgba(59, 130, 246, 0.1);
+            margin: 0;
         }
 
+        /* 3. 프리뷰 카드 영역 (높이 조절로 버튼 위치 확보) */
         .preview-card {
-            width: 100%; max-width: 380px; height: 320px; background: #ffffff; border-radius: 35px;
-            position: relative; margin-bottom: 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.05); border: 2px solid #e2e8f0;
+            width: 100%; 
+            max-width: 380px; 
+            height: 280px; /* 기존 320px에서 축소하여 위로 올림 */
+            background: #ffffff; 
+            border-radius: 35px;
+            position: relative; 
+            box-shadow: 0 10px 30px rgba(0,0,0,0.05); 
+            border: 2px solid #e2e8f0;
             overflow: hidden;
         }
 
@@ -39,13 +73,14 @@
         }
         
         .status-msg { 
-            width: 100%; text-align: center; font-weight: 800; font-size: 1.15rem; line-height: 1.4;
-            position: absolute; top: 25px; left: 0; z-index: 20; padding: 0 20px;
+            width: 100%; text-align: center; font-weight: 800; font-size: 1.05rem; line-height: 1.4;
+            position: absolute; top: 20px; left: 0; z-index: 20; padding: 0 20px;
         }
-        #timer-text { color: #f43f5e; font-weight: 900; font-size: 1.3rem; }
+        #timer-text { color: #f43f5e; font-weight: 900; font-size: 1.2rem; }
 
-        .count-text { font-size: 5.5rem; font-weight: 900; color: var(--p-blue); z-index: 30; }
+        .count-text { font-size: 5rem; font-weight: 900; color: var(--p-blue); z-index: 30; }
 
+        /* 4. 깃발 드로잉 요소 */
         .flag-unit { 
             position: absolute; width: 120px; height: 150px; 
             top: 60%; left: 50%; transform: translate(-50%, -50%);
@@ -68,17 +103,34 @@
         
         .gray-out { background-color: #e2e8f0 !important; border-color: #cbd5e1 !important; }
 
-        .control-section { width: 100%; max-width: 450px; text-align: center; }
-        .btn-game { padding: 18px 60px; border-radius: 50px; border: none; background: var(--p-blue); color: white; font-weight: 900; font-size: 1.4rem; cursor: pointer; box-shadow: 0 6px 15px rgba(14,165,233,0.3); }
+        /* 5. 컨트롤 및 조립 영역 */
+        .control-section { 
+            width: 100%; 
+            max-width: 450px; 
+            text-align: center; 
+            margin-top: 5px;
+        }
+
+        .btn-game { 
+            padding: 16px 55px; 
+            border-radius: 50px; 
+            border: none; 
+            background: var(--p-blue); 
+            color: white; 
+            font-weight: 900; 
+            font-size: 1.3rem; 
+            cursor: pointer; 
+            box-shadow: 0 6px 15px rgba(14,165,233,0.3); 
+        }
 
         .category-group { display: none; }
         .category-group.active { display: block; }
-        .category-title { font-size: 1.1rem; font-weight: 800; color: #1e293b; margin-bottom: 15px; }
+        .category-title { font-size: 1.05rem; font-weight: 800; color: #1e293b; margin-bottom: 12px; }
         
         .option-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
         .opt-card { background: white; border-radius: 15px; padding: 10px 5px; text-align: center; cursor: pointer; box-shadow: 0 4px 10px rgba(0,0,0,0.04); border: 2.5px solid transparent; }
-        .color-chip { width: 38px; height: 38px; margin: 0 auto 8px; border-radius: 10px; border: 1px solid rgba(0,0,0,0.1); }
-        .label { font-size: 0.9rem; font-weight: 800; }
+        .color-chip { width: 36px; height: 36px; margin: 0 auto 8px; border-radius: 10px; border: 1px solid rgba(0,0,0,0.1); }
+        .label { font-size: 0.85rem; font-weight: 800; }
     </style>
 </head>
 <body>
