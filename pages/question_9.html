@@ -10,24 +10,45 @@
     <link rel="stylesheet" href="../css/common.css">
 
     <style>
-        body, html { overflow: hidden; background-color: #f8fafc; margin: 0; padding: 0; }
+        /* 1. 전체 레이아웃 설정 */
+        body, html { 
+            overflow: hidden; 
+            background-color: #f8fafc; 
+            margin: 0; padding: 0; 
+        }
         
         main {
+            /* 헤더와 푸터의 높이를 뺀 나머지 공간에 딱 맞게 설정 */
             height: calc(100vh - var(--header-height) - var(--footer-height));
-            display: flex; flex-direction: column; align-items: center; justify-content: space-between;
-            padding: 10px 20px; position: relative;
+            display: flex; 
+            flex-direction: column; 
+            align-items: center; 
+            justify-content: space-between; /* 요소들을 위아래로 균등 배치 */
+            padding: 5px 20px; /* 상하 여백 최소화 */
+            position: relative;
             box-sizing: border-box;
         }
 
+        /* 2. 지시문 및 상태바 설정 */
         .instruction {
-            font-size: 1.05rem; font-weight: 800; color: #1e293b; text-align: center;
-            line-height: 1.5; z-index: 10; margin-top: 5px; margin-bottom: 10px;
+            font-size: 0.95rem; /* 모바일 대응 글자 크기 축소 */
+            font-weight: 800; 
+            color: #1e293b; 
+            text-align: center;
+            line-height: 1.4; 
+            z-index: 10; 
+            margin-top: 5px; 
+            margin-bottom: 5px;
         }
 
-        /* 상단 상태 바 (난이도 + 타이머 한 줄 배치) */
         .status-container {
-            display: flex; align-items: center; justify-content: center; 
-            gap: 12px; width: 100%; z-index: 10; margin-top: -5px;
+            display: flex; 
+            align-items: center; 
+            justify-content: center; 
+            gap: 10px; 
+            width: 100%; 
+            z-index: 10;
+            margin-bottom: 5px;
         }
 
         .difficulty-badge {
@@ -43,10 +64,17 @@
             font-weight: 900; font-size: 1.1rem; border: 2px solid #bae6fd;
         }
 
+        /* 3. 게임 영역 (높이 조절의 핵심) */
         .road-container {
-            position: relative; width: 100%; max-width: 400px; height: 350px;
-            background: #cbd5e1; border-radius: 40px; border: 6px solid white;
-            overflow: hidden; box-shadow: 0 15px 30px rgba(0,0,0,0.1);
+            position: relative; 
+            width: 100%; 
+            max-width: 400px; 
+            height: 280px; /* 높이를 과감히 줄여 버튼 공간 확보 */
+            background: #cbd5e1; 
+            border-radius: 40px; 
+            border: 6px solid white;
+            overflow: hidden; 
+            box-shadow: 0 10px 25px rgba(0,0,0,0.1);
         }
 
         .road-moving-bg {
@@ -68,15 +96,16 @@
             display: flex; align-items: center; justify-content: center;
             border-radius: 34px;
         }
+
         .btn-start-game {
-            padding: 12px 35px; font-size: 1.4rem; font-weight: 900;
+            padding: 12px 30px; font-size: 1.3rem; font-weight: 900;
             background: #0ea5e9; color: white; border: none; border-radius: 50px;
             box-shadow: 0 4px 15px rgba(14, 165, 233, 0.4);
         }
 
         .bike-handlebar {
-            position: absolute; bottom: -10px; left: 50%; width: 260px;
-            margin-left: -130px; z-index: 5; transition: transform 0.08s linear;
+            position: absolute; bottom: -10px; left: 50%; width: 240px;
+            margin-left: -120px; z-index: 5; transition: transform 0.08s linear;
         }
 
         .balance-gauge {
@@ -88,15 +117,29 @@
             background: #ef4444; border-radius: 2px; transform: translateX(-50%);
         }
 
+        /* 4. 하단 컨트롤 버튼 설정 */
         .control-group {
-            display: flex; gap: 15px; width: 100%; max-width: 400px; z-index: 10; margin-bottom: 5px;
+            display: flex; 
+            gap: 15px; 
+            width: 100%; 
+            max-width: 400px; 
+            z-index: 10; 
+            margin-bottom: 5px; /* 푸터와의 간격 최소화 */
         }
+
         .btn-move {
-            flex: 1; padding: 20px; border-radius: 24px; border: none;
-            background: white; color: #1e293b; font-size: 1.8rem; font-weight: 900;
-            box-shadow: 0 6px 0 #e2e8f0; transition: 0.1s;
+            flex: 1; 
+            padding: 15px 0; /* 버튼 높이를 줄여서 위로 올림 */
+            border-radius: 20px; 
+            border: none;
+            background: white; 
+            color: #1e293b; 
+            font-size: 1.6rem; 
+            font-weight: 900;
+            box-shadow: 0 5px 0 #e2e8f0; 
+            transition: 0.1s;
         }
-        .btn-move:active { transform: translateY(3px); box-shadow: 0 3px 0 #e2e8f0; }
+        .btn-move:active { transform: translateY(3px); box-shadow: 0 2px 0 #e2e8f0; }
     </style>
 </head>
 <body>
