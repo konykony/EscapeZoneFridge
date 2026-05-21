@@ -10,43 +10,46 @@
     <link rel="stylesheet" href="../css/common.css">
 
     <style>
-        body, html { margin: 0; padding: 0; height: 100vh; background-color: #f8fafc; font-family: 'Pretendard', sans-serif; overflow: hidden; }
+        /* 1. 전체 레이아웃 설정 */
+        body, html { 
+            margin: 0; padding: 0; 
+            height: 100vh; 
+            background-color: #f8fafc; 
+            font-family: 'Pretendard', sans-serif; 
+            overflow: hidden; 
+        }
 
         main {
-            margin-top: var(--header-height);
-            height: calc(100vh - var(--header-height) - var(--footer-height));
-            display: flex; flex-direction: column; 
+            /* 헤더와 푸터의 높이를 제외한 나머지 공간 사용 */
+            height: calc(100vh - var(--header-height, 60px) - var(--footer-height, 60px));
+            display: flex; 
+            flex-direction: column; 
             align-items: center; 
-            justify-content: center; /* 수직 중앙 정렬 */
-            padding: 0 20px;
+            /* [핵심] 상단 정렬로 변경하여 위로 밀착시킴 */
+            justify-content: flex-start; 
+            padding: 15px 20px; 
+            gap: 15px; /* 요소들 사이의 자연스러운 간격 */
             box-sizing: border-box;
         }
 
-        /* [미션 안내 박스] - common.css와 통일 */
-        .system-info {
+        /* 2. 지시문 영역 슬림화 */
+        .instruction {
             width: 100%;
             max-width: 320px;
-            background: #eff6ff;
-            border: 1px solid #bfdbfe;
-            border-radius: 12px;
-            padding: 12px 15px;
-            margin-bottom: 20px;
+            font-size: 1rem; 
+            font-weight: 800; 
+            color: #334155; 
             text-align: center;
-        }
-        .system-info p {
-            font-size: 0.85rem; 
-            font-weight: 600; 
-            color: #1e40af; 
-            margin: 0; 
-            line-height: 1.5; 
+            line-height: 1.4;
             word-break: keep-all;
+            margin-top: 5px; /* 헤더와의 간격 최소화 */
         }
 
-        /* [잠금해제 카드] - 아이콘을 제거하고 슬림하게 조정 */
+        /* 3. 잠금해제 카드 (크기 및 여백 최적화) */
         .login-card {
             background: #ffffff;
             border-radius: 24px; 
-            padding: 25px 20px; /* 세로 패딩 소폭 축소 */
+            padding: 20px; 
             width: 100%; 
             max-width: 320px; 
             box-shadow: 0 10px 25px rgba(0, 0, 0, 0.05);
@@ -55,18 +58,20 @@
             border: 1px solid #e2e8f0;
         }
 
-        /* [변경] 타이틀을 카드의 첫 번째 요소로 배치 */
         .login-status { 
             color: #1e293b; 
             font-weight: 800; 
-            font-size: 1.3rem; 
+            font-size: 1.2rem; 
             margin-top: 0;
-            margin-bottom: 20px; /* 도트와의 간격 확보 */
+            margin-bottom: 15px; 
         }
 
-        /* PIN 입력 도트 */
+        /* 4. PIN 입력 도트 */
         .pin-dots {
-            display: flex; justify-content: center; gap: 12px; margin-bottom: 30px;
+            display: flex; 
+            justify-content: center; 
+            gap: 12px; 
+            margin-bottom: 20px;
         }
         .dot {
             width: 12px; height: 12px; 
@@ -74,22 +79,26 @@
             background: #e2e8f0; 
             transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
         }
-        .dot.active { background: #3b82f6; transform: scale(1.2); box-shadow: 0 0 10px rgba(59, 130, 246, 0.3); }
+        .dot.active { 
+            background: #3b82f6; 
+            transform: scale(1.2); 
+            box-shadow: 0 0 10px rgba(59, 130, 246, 0.3); 
+        }
 
-        /* 키패드 대칭 정렬 및 높이 최적화 */
+        /* 5. 키패드 레이아웃 (높이 슬림화) */
         .key-grid {
             display: grid; 
             grid-template-columns: repeat(3, 1fr); 
-            gap: 10px; /* 간격을 살짝 좁힘 */
+            gap: 8px; 
             width: 100%;
         }
         .key-btn {
-            height: 52px; /* 버튼 높이 살짝 축소 */
+            height: 48px; /* 버튼 높이를 줄여서 전체 카드 높이 축소 */
             background: #ffffff; 
             color: #334155;
             border: 1px solid #e2e8f0; 
-            border-radius: 14px; 
-            font-size: 1.25rem; 
+            border-radius: 12px; 
+            font-size: 1.2rem; 
             font-weight: 700;
             cursor: pointer;
             transition: all 0.1s;
@@ -97,11 +106,22 @@
             align-items: center;
             justify-content: center;
         }
-        .key-btn:active { background: #f8fafc; transform: scale(0.96); border-color: #3b82f6; color: #3b82f6; }
+        .key-btn:active { 
+            background: #f8fafc; 
+            transform: scale(0.96); 
+            border-color: #3b82f6; 
+            color: #3b82f6; 
+        }
         
-        .key-btn.fn-clear { color: #f87171; font-size: 0.95rem; }
-        .key-btn.fn-ok { background: #3b82f6; color: white; border: none; font-size: 0.95rem; font-weight: 800; }
-        .key-btn.fn-ok:active { background: #2563eb; transform: scale(0.96); }
+        .key-btn.fn-clear { color: #f87171; font-size: 0.9rem; }
+        .key-btn.fn-ok { 
+            background: #3b82f6; 
+            color: white; 
+            border: none; 
+            font-size: 0.9rem; 
+            font-weight: 800; 
+        }
+        .key-btn.fn-ok:active { background: #2563eb; }
 
     </style>
 </head>
