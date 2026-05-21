@@ -9,17 +9,18 @@
     <link rel="stylesheet" href="../lib/Pretendard-1.3.9/web/static/pretendard.css" />
     
     <style>
-        /* @import url('https://cdn.jsdelivr.net/gh/orioncactus/pretendard/dist/web/static/pretendard.css'); */
-        
         :root {
-            --main-color: #5076A1; /* 쨍하지 않은 차분한 스틸 블루 */
-            --bg-color: #F8FAFC;   /* 차분한 그레이 톤 배경 */
+            --main-color: #5076A1; /* 스틸 블루 */
+            --bg-color: #F8FAFC;   /* 부드러운 배경색 */
         }
 
-        body { 
+        /* 1. 기본 레이아웃: 아이폰 툴바 밀림 방지 */
+        body, html { 
             background-color: var(--bg-color); 
             font-family: 'Pretendard', sans-serif; 
-            height: 100vh; 
+            /* 100vh 대신 100%를 사용하여 주소창 높이 변화에 대응 */
+            height: 100%; 
+            margin: 0; padding: 0;
             overflow: hidden; 
             color: #334155;
         }
@@ -27,54 +28,77 @@
         .index-container { 
             display: flex; 
             flex-direction: column; 
-            justify-content: center; 
+            /* 중앙 정렬 대신 상단 정렬(flex-start)을 사용하여 위로 밀착 */
+            justify-content: flex-start; 
             align-items: center; 
             height: 100%; 
-            padding: 30px; 
+            padding: 40px 30px; /* 상단 여백 확보 */
+            box-sizing: border-box; 
         }
         
-        /* 표지 이미지 설정 (비율 고정) */
+        /* 2. 표지 이미지: 화면 높이에 따라 자동 조절 */
         .image-cover { 
-            max-height: 60vh; 
+            /* [중요] 화면 높이의 최대 50%만 차지하게 설정하여 버튼 공간 확보 */
+            max-height: 50vh; 
             width: auto; 
+            max-width: 100%;
             border-radius: 20px; 
-            box-shadow: 0 4px 15px rgba(0,0,0,0.08); 
+            box-shadow: 0 10px 30px rgba(0,0,0,0.08); 
             margin-bottom: 25px; 
             display: block; 
         }
 
-        /* 이름 입력 영역 */
+        /* 3. 입력 영역 및 버튼 통합 관리 */
         .input-group-custom { 
-            display: none; 
+            display: none; /* JS에서 제어 */
+            width: 100%;
+            max-width: 320px;
             margin-bottom: 15px; 
         } 
 
         .user-input { 
             width: 100%; 
-            padding: 15px; 
-            border-radius: 15px; 
-            border: 1px solid #CBD5E1; 
+            padding: 16px; 
+            border-radius: 18px; 
+            border: 2px solid #CBD5E1; 
             margin-bottom: 15px; 
             text-align: center; 
             font-size: 1.1rem; 
+            font-weight: 700;
+            background: white;
+            box-sizing: border-box;
+            outline: none;
+            transition: border-color 0.2s;
+        }
+        .user-input:focus {
+            border-color: var(--main-color);
         }
 
-        /* 시작 버튼 (이미지 너비에 동기화) */
+        /* 4. 시작 버튼: 세로 높이를 확보하면서 화면 이탈 방지 */
         .start-btn { 
-            border-radius: 15px; 
-            font-weight: bold; 
-            font-size: 1.1rem; 
+            width: 100%;
+            max-width: 320px; /* 입력창과 동일한 너비 */
+            border-radius: 18px; 
+            font-weight: 900; 
+            font-size: 1.2rem; 
             background-color: var(--main-color); 
             border: none; 
             padding: 18px; 
             color: white; 
-            box-shadow: 0 4px 10px rgba(80,118,161,0.2); 
+            box-shadow: 0 6px 15px rgba(80,118,161,0.2); 
             transition: 0.2s; 
+            cursor: pointer;
         }
 
         .start-btn:active { 
-            transform: scale(0.98); 
+            transform: scale(0.97); 
             background-color: #3F5E81; 
+        }
+
+        /* 아이폰 키보드 팝업 시 화면 깨짐 방지 */
+        @media (max-height: 500px) {
+            .image-cover { max-height: 35vh; }
+            .index-container { padding: 20px; }
         }
     </style>
 </head>
