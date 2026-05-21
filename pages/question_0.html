@@ -22,7 +22,7 @@
             overflow-x: hidden;
         }
 
-        /* [1] 영상 영역 */
+        /* [1] 영상 영역 동일 */
         #video-overlay {
             position: fixed; top: 0; left: 0;
             width: 100%; height: 100%;
@@ -30,8 +30,6 @@
             display: flex; align-items: center; justify-content: center;
             cursor: pointer;
         }
-
-        /* 브라우저 기본 컨트롤 숨김 처리 */
         video::-webkit-media-controls { display: none !important; }
         video { width: 100%; height: 100%; object-fit: cover; }
 
@@ -41,58 +39,58 @@
             transition: color 0.5s;
         }
 
-        /* [2] 콘텐츠 영역: 처음에는 완전히 숨김 */
+        /* [2] 콘텐츠 영역: 상단 정렬로 변경 */
         #story-content {
             display: none;
             flex-direction: column;
             align-items: center;
+            /* [수정] 위쪽부터 자연스럽게 쌓이도록 조정 */
+            justify-content: flex-start; 
             padding: 40px 25px;
-            min-height: 100vh;
+            /* [수정] 고정 높이 대신 최소 높이 제거하여 버튼을 위로 당김 */
+            min-height: auto; 
             width: 100%;
+            box-sizing: border-box;
         }
 
-        /* .mission-text {
-            background: white;
-            padding: 20px;
-            border-radius: 15px;
-            border: 1px solid var(--main-color);
-            box-shadow: 0 4px 10px rgba(0,0,0,0.03);
-            font-size: 1.05rem;
-            line-height: 1.6;
-            font-weight: 600;
+        /* 지시문 스타일 (상단 밀착용) */
+        .instruction {
+            font-size: 1.1rem;
+            font-weight: 800;
             color: #334155;
-            margin-bottom: 25px;
-            word-break: keep-all;
-            width: 100%;
-            max-width: 450px;
             text-align: center;
-        } */
+            margin-top: 10px;
+            margin-bottom: 25px;
+            line-height: 1.5;
+            word-break: keep-all;
+        }
 
         .cipher-img {
             width: 100%;
             max-width: 450px;
             border-radius: 20px;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.08);
-            margin-bottom: 40px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.08);
+            margin-bottom: 30px; /* 버튼과의 간격 */
         }
 
-        /* [3] 다음 버튼 */
+        /* [3] 다음 버튼: 위로 끌어올림 */
         .next-btn {
             width: 100%;
-            max-width: 280px;
+            max-width: 300px;
             padding: 18px;
-            border-radius: 15px;
+            border-radius: 20px;
             background-color: var(--main-color);
             color: white;
             border: none;
-            font-weight: bold;
-            font-size: 1.1rem;
-            box-shadow: 0 4px 10px rgba(80,118,161,0.2);
+            font-weight: 900;
+            font-size: 1.2rem;
+            box-shadow: 0 6px 15px rgba(80,118,161,0.2);
             transition: 0.2s;
-            margin-top: auto; 
-            margin-bottom: 30px;
+            /* [수정] auto 대신 고정 마진 사용 */
+            margin-top: 10px; 
+            margin-bottom: 50px;
         }
-        .next-btn:active { transform: scale(0.98); background-color: #3F5E81; }
+        .next-btn:active { transform: scale(0.97); background-color: #3F5E81; }
     </style>
 </head>
 <body>
