@@ -18,24 +18,25 @@
         }
         
         main {
+            /* 헤더/푸터 제외 영역 */
             height: calc(100vh - var(--header-height) - var(--footer-height));
             display: flex; 
             flex-direction: column; 
             align-items: center; 
-            /* space-between 대신 center로 모으고 gap으로 간격 조절 */
-            justify-content: center; 
-            gap: 8px; 
-            padding: 10px; 
+            /* center 대신 flex-start를 사용하여 위로 바짝 붙입니다 */
+            justify-content: flex-start; 
+            gap: 12px; /* 요소들 사이의 간격 */
+            padding: 15px 20px; 
             box-sizing: border-box;
         }
 
         .instruction {
-            font-size: 1rem; 
+            font-size: 1.05rem; 
             font-weight: 800; 
             color: #1e293b; 
             text-align: center;
-            line-height: 1.3;
-            margin: 0;
+            line-height: 1.4;
+            margin-bottom: 5px; /* 지시문 아래 여백 */
         }
 
         .status-container {
@@ -43,29 +44,30 @@
             align-items: center; 
             justify-content: center; 
             gap: 8px;
+            margin-bottom: 5px;
         }
 
         .difficulty-badge, .timer-badge {
-            padding: 4px 12px; 
-            border-radius: 10px;
+            padding: 5px 15px; 
+            border-radius: 12px;
             font-weight: 800;
-            font-size: 0.9rem;
+            font-size: 0.95rem;
         }
 
         .difficulty-badge { background: white; border: 2px solid #e2e8f0; }
         .timer-badge { background: #e0f2fe; color: #0ea5e9; border: 2px solid #bae6fd; }
 
-        /* 도로 영역: 화면 높이에 따라 유동적으로 조절하여 버튼 밀림 방지 */
+        /* 도로 영역: 위로 붙이되 모바일에서 버튼이 밀리지 않을 적당한 높이 */
         .road-container {
             position: relative; 
             width: 100%; 
-            max-width: 360px; 
-            height: 38vh; /* 화면 높이의 38%만 차지하도록 고정 */
+            max-width: 400px; 
+            height: 330px; /* 고정 높이로 다시 안정화 */
             background: #cbd5e1; 
-            border-radius: 30px; 
-            border: 5px solid white;
+            border-radius: 40px; 
+            border: 6px solid white;
             overflow: hidden;
-            box-shadow: 0 10px 20px rgba(0,0,0,0.05);
+            box-shadow: 0 10px 25px rgba(0,0,0,0.1);
         }
 
         .road-moving-bg {
@@ -75,42 +77,40 @@
                 #f8fafc 50%, 
                 #94a3b8 52%, #94a3b8 100%
             );
-            background-size: 100% 100px;
+            background-size: 100% 120px;
         }
         .road-moving-bg.active { animation: road-flow 0.5s linear infinite; }
-        @keyframes road-flow { from { transform: translateY(0); } to { transform: translateY(100px); } }
+        @keyframes road-flow { from { transform: translateY(0); } to { transform: translateY(120px); } }
 
-        /* 핸들 크기를 도로 높이에 맞춰 살짝 축소 */
         .bike-handlebar {
-            position: absolute; bottom: -5px; left: 50%; width: 220px;
-            margin-left: -110px; z-index: 5; transition: transform 0.08s linear;
+            position: absolute; bottom: -10px; left: 50%; width: 260px;
+            margin-left: -130px; z-index: 5; transition: transform 0.08s linear;
         }
 
-        /* 하단 버튼 영역 */
+        /* 하단 버튼 영역: 도로 바로 아래에 위치 */
         .control-group {
             display: flex; 
-            gap: 12px; 
+            gap: 15px; 
             width: 100%; 
-            max-width: 360px;
+            max-width: 400px;
             margin-top: 5px;
         }
 
         .btn-move {
             flex: 1; 
-            padding: 18px 0; /* 터치하기 적당한 높이 유지 */
-            border-radius: 20px; 
+            padding: 22px 0; 
+            border-radius: 24px; 
             border: none;
             background: white; 
             color: #1e293b; 
-            font-size: 1.5rem; 
+            font-size: 1.8rem; 
             font-weight: 900;
-            box-shadow: 0 5px 0 #e2e8f0;
+            box-shadow: 0 6px 0 #e2e8f0;
         }
-        .btn-move:active { transform: translateY(3px); box-shadow: 0 2px 0 #e2e8f0; }
+        .btn-move:active { transform: translateY(3px); box-shadow: 0 3px 0 #e2e8f0; }
 
-        /* 시작 오버레이 버튼 크기 조정 */
         .btn-start-game {
-            padding: 10px 25px; font-size: 1.2rem; font-weight: 900;
+            padding: 15px 35px; font-size: 1.4rem; font-weight: 900;
             background: #0ea5e9; color: white; border: none; border-radius: 50px;
         }
     </style>
