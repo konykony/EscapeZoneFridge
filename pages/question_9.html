@@ -18,63 +18,54 @@
         }
         
         main {
-            /* 헤더와 푸터의 높이를 뺀 나머지 공간에 딱 맞게 설정 */
             height: calc(100vh - var(--header-height) - var(--footer-height));
             display: flex; 
             flex-direction: column; 
             align-items: center; 
-            justify-content: space-between; /* 요소들을 위아래로 균등 배치 */
-            padding: 5px 20px; /* 상하 여백 최소화 */
-            position: relative;
+            /* space-between 대신 center로 모으고 gap으로 간격 조절 */
+            justify-content: center; 
+            gap: 8px; 
+            padding: 10px; 
             box-sizing: border-box;
         }
 
-        /* 2. 지시문 및 상태바 설정 */
         .instruction {
-            font-size: 0.95rem; /* 모바일 대응 글자 크기 축소 */
+            font-size: 1rem; 
             font-weight: 800; 
             color: #1e293b; 
             text-align: center;
-            line-height: 1.4; 
-            z-index: 10; 
-            margin-top: 5px; 
-            margin-bottom: 5px;
+            line-height: 1.3;
+            margin: 0;
         }
 
         .status-container {
             display: flex; 
             align-items: center; 
             justify-content: center; 
-            gap: 10px; 
-            width: 100%; 
-            z-index: 10;
-            margin-bottom: 5px;
+            gap: 8px;
         }
 
-        .difficulty-badge {
-            display: flex; align-items: center; gap: 6px;
-            background: #ffffff; padding: 4px 12px; border-radius: 12px;
-            border: 2px solid #e2e8f0; box-shadow: 0 2px 4px rgba(0,0,0,0.05);
-        }
-        .difficulty-badge .lv-label { font-size: 0.75rem; font-weight: 800; color: #64748b; }
-        .difficulty-badge .lv-number { font-size: 1rem; font-weight: 900; transition: color 0.3s ease; }
-
-        .timer-badge {
-            background: #e0f2fe; color: #0ea5e9; padding: 4px 15px; border-radius: 12px;
-            font-weight: 900; font-size: 1.1rem; border: 2px solid #bae6fd;
+        .difficulty-badge, .timer-badge {
+            padding: 4px 12px; 
+            border-radius: 10px;
+            font-weight: 800;
+            font-size: 0.9rem;
         }
 
-        /* 3. 게임 영역 (높이 조절의 핵심) */
+        .difficulty-badge { background: white; border: 2px solid #e2e8f0; }
+        .timer-badge { background: #e0f2fe; color: #0ea5e9; border: 2px solid #bae6fd; }
+
+        /* 도로 영역: 화면 높이에 따라 유동적으로 조절하여 버튼 밀림 방지 */
         .road-container {
             position: relative; 
             width: 100%; 
-            max-width: 400px; 
-            height: 280px; /* 높이를 과감히 줄여 버튼 공간 확보 */
+            max-width: 360px; 
+            height: 38vh; /* 화면 높이의 38%만 차지하도록 고정 */
             background: #cbd5e1; 
-            border-radius: 40px; 
-            border: 6px solid white;
-            overflow: hidden; 
-            box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+            border-radius: 30px; 
+            border: 5px solid white;
+            overflow: hidden;
+            box-shadow: 0 10px 20px rgba(0,0,0,0.05);
         }
 
         .road-moving-bg {
@@ -84,62 +75,44 @@
                 #f8fafc 50%, 
                 #94a3b8 52%, #94a3b8 100%
             );
-            background-size: 100% 120px;
+            background-size: 100% 100px;
         }
-        
         .road-moving-bg.active { animation: road-flow 0.5s linear infinite; }
-        @keyframes road-flow { from { transform: translateY(0); } to { transform: translateY(120px); } }
+        @keyframes road-flow { from { transform: translateY(0); } to { transform: translateY(100px); } }
 
-        .start-overlay {
-            position: absolute; top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(30, 41, 59, 0.7); z-index: 100;
-            display: flex; align-items: center; justify-content: center;
-            border-radius: 34px;
-        }
-
-        .btn-start-game {
-            padding: 12px 30px; font-size: 1.3rem; font-weight: 900;
-            background: #0ea5e9; color: white; border: none; border-radius: 50px;
-            box-shadow: 0 4px 15px rgba(14, 165, 233, 0.4);
-        }
-
+        /* 핸들 크기를 도로 높이에 맞춰 살짝 축소 */
         .bike-handlebar {
-            position: absolute; bottom: -10px; left: 50%; width: 240px;
-            margin-left: -120px; z-index: 5; transition: transform 0.08s linear;
+            position: absolute; bottom: -5px; left: 50%; width: 220px;
+            margin-left: -110px; z-index: 5; transition: transform 0.08s linear;
         }
 
-        .balance-gauge {
-            position: absolute; top: 20px; width: 70%; left: 15%; height: 6px;
-            background: rgba(255,255,255,0.3); border-radius: 10px; z-index: 10;
-        }
-        .gauge-pointer {
-            position: absolute; left: 50%; width: 4px; height: 14px; top: -4px;
-            background: #ef4444; border-radius: 2px; transform: translateX(-50%);
-        }
-
-        /* 4. 하단 컨트롤 버튼 설정 */
+        /* 하단 버튼 영역 */
         .control-group {
             display: flex; 
-            gap: 15px; 
+            gap: 12px; 
             width: 100%; 
-            max-width: 400px; 
-            z-index: 10; 
-            margin-bottom: 5px; /* 푸터와의 간격 최소화 */
+            max-width: 360px;
+            margin-top: 5px;
         }
 
         .btn-move {
             flex: 1; 
-            padding: 15px 0; /* 버튼 높이를 줄여서 위로 올림 */
+            padding: 18px 0; /* 터치하기 적당한 높이 유지 */
             border-radius: 20px; 
             border: none;
             background: white; 
             color: #1e293b; 
-            font-size: 1.6rem; 
+            font-size: 1.5rem; 
             font-weight: 900;
-            box-shadow: 0 5px 0 #e2e8f0; 
-            transition: 0.1s;
+            box-shadow: 0 5px 0 #e2e8f0;
         }
         .btn-move:active { transform: translateY(3px); box-shadow: 0 2px 0 #e2e8f0; }
+
+        /* 시작 오버레이 버튼 크기 조정 */
+        .btn-start-game {
+            padding: 10px 25px; font-size: 1.2rem; font-weight: 900;
+            background: #0ea5e9; color: white; border: none; border-radius: 50px;
+        }
     </style>
 </head>
 <body>
