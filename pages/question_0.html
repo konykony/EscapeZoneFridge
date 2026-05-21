@@ -141,38 +141,64 @@
         }
 
         $(document).ready(function() {
-            // common.js에 정의된 초기화 함수 실행
-            if (typeof initializeUI === "function") initializeUI(0); 
+            // 1. [최우선] URL 파라미터에서 테스트 모드 여부 판별
+            const urlParams = new URLSearchParams(window.location.search);
+            const isTestMode = (urlParams.get('type') || "").toLowerCase() === 'test';
 
-            // 사용자 이름 체크
-            const userName = typeof GetFridgeCookie === "function" ? GetFridgeCookie('fridge_name') : "사용자";
-            if(!userName && typeof GetFridgeCookie === "function"){
-                window.location.href = 'error.html'; 
-                return;
+            // 2. common.js 초기화 실행 (내부에서 테스트 모드에 따른 가상 데이터 세팅)
+            if (typeof initializeUI === "function") {
+                initializeUI(0); 
             }
 
+            // 3. [보안 체크 분기] 테스트 모드일 때는 쿠키 검증을 건너뜁니다.
+            if (!isTestMode) {
+                // 일반 모드일 때만 실제 쿠키 'fridge_name'이 있는지 확인
+                const userName = typeof GetFridgeCookie === "function" ? GetFridgeCookie('fridge_name') : null;
+                
+                if (!userName) {
+                    console.error("[Access Denied] 사용자 정보가 확인되지 않아 error.html로 리다이렉트합니다.");
+                    window.location.href = 'error.html'; 
+                    return; // 이후 로직 실행 방지
+                }
+            } else {
+                console.log("[TEST MODE] 테스트 세션을 감지했습니다. 쿠키 체크를 생략합니다.");
+            }
+
+            // 4. 영상 관련 로직
             const video = document.getElementById('story-video');
             
-            // 영상 재생 완료 시 자동 전환
-            video.onended = function() {
-                skipVideo();
-            };
+            // 영상 재생 완료 시 자동으로 skipVideo 함수 호출
+            if (video) {
+                video.onended = function() {
+                    skipVideo();
+                };
+            }
 
-            // 5초 후 안내 문구 변경
+            // 5초 후 건너뛰기 안내 문구 활성화
             setTimeout(() => {
-                if(!isSkipped) {
-                    $('.skip-notice').css('color', '#ffffff').text('화면을 클릭하여 건너뛰기');
+                if (!isSkipped) {
+                    $('.skip-notice')
+                        .css('color', '#ffffff')
+                        .text('화면을 클릭하여 건너뛰기');
                 }
             }, 5000);
 
-            // 다음 버튼 클릭 이벤트
+            // 5. [다음 버튼] 클릭 이벤트 - 테스트 파라미터 유지 로직 포함
             $('#go-next').click(function() {
                 const startTime = Date.now();
-                FridgeCookie.set('fridge_start_time', startTime);
-                FridgeCookie.set('fridge_idx', 1);
-                FridgeCookie.set('fridge_status', 'playing');
+                // 다음 페이지로 이동할 때 테스트 모드라면 파라미터를 붙여줍니다.
+                const nextUrl = isTestMode ? 'question_1.html?type=test' : 'question_1.html';
+
+                if (!isTestMode) {
+                    // 일반 모드일 때만 쿠키 정식 등록
+                    if (typeof SetFridgeCookie === "function") {
+                        SetFridgeCookie('fridge_start_time', startTime, 24);
+                        SetFridgeCookie('fridge_idx', 1, 24);
+                        SetFridgeCookie('fridge_status', 'playing', 24);
+                    }
+                }
                 
-                location.href = 'question_1.html';
+                location.href = nextUrl;
             });
         });
     </script>
