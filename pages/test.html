@@ -105,19 +105,7 @@
 
 
     <script src="../lib/jquery-3.6.0.min.js"></script>
-    <script>
-        // 모든 게임 관련 쿠키 삭제 함수
-        function deleteCookie(name) {
-            document.cookie = name + '=; expires=Thu, 01 Jan 1970 00:00:01 GMT; path=/;';
-        }
+    <script src="../js/common.js"></script>
 
-
-        function resetAndMain() {
-            const cookies = ['fridge_name', 'fridge_idx', 'fridge_start_time', 'fridge_status','polar_items','q4_complete'];
-            cookies.forEach(c => deleteCookie(c));
-            alert("모든 정보가 초기화되었습니다.");
-            location.href = 'index.html';
-        }
-    </script>
 </body>
 </html>

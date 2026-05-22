@@ -501,6 +501,18 @@ function DeleteFridgeCookie(name) {
     document.cookie = name + '=; Max-Age=-99999999;path=/';
 }
 
+// 쿠키 초기화
+function resetAndMain() {
+    const cookies = ['fridge_name', 'fridge_idx', 'fridge_start_time', 'fridge_status','polar_items','q4_complete','endTime'];
+    // 문제 1~12번의 시작 시간 쿠키 키를 자동으로 생성하여 추가
+    for (let i = 1; i <= 12; i++) {
+        cookies.push('start_time_p' + i);
+    }
+    cookies.forEach(c => DeleteFridgeCookie(c));
+    alert("모든 정보가 초기화되었습니다.");
+    location.href = 'index.html';
+}
+
 // window.runTemperatureSequence = function(pageNum) {
 //     // 1. 오버레이 생성 및 초기화 (기존과 동일)
 //     if (!$('#thermometer-overlay').length) {
