@@ -39,16 +39,27 @@
             cursor: pointer; transition: 0.2s;
         }
 
+        /* 영상 하단 안내 메시지 */
+        #vdo-msg {
+            position: absolute; bottom: 30px; left: 0; width: 100%;
+            text-align: center; color: rgba(255,255,255,0.7);
+            font-size: 0.9rem; font-weight: 700; z-index: 10;
+            pointer-events: none;
+            text-shadow: 0 0 10px rgba(0,0,0,0.8);
+        }
+
         @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
     </style>
 </head>
 <body>
 
     <div id="video-container">
-        <video id="story-video" playsinline autoplay muted>
+        <video id="story-video" playsinline muted webkit-playsinline preload="auto">
             <source src="../img/AZyuQYOPhKkL5Z6Z7IZpXg-AZyuQYOPbSJB1wqyNcHqtw.mp4" type="video/mp4">
         </video>
     </div>
+
+    <div id="vdo-msg">영상이 시작되지 않으면 화면을 터치해 주세요.</div>
 
     <div id="wrap">
         <div class="story-container" id="story-content">
@@ -70,11 +81,35 @@
         const story = document.getElementById('story-content');
         const vContainer = document.getElementById('video-container');
 
-        // 비디오 재생 종료 시 호출
-        video.onended = () => {
+        const playPromise = video.play();
+
+        if (playPromise !== undefined) {
+            playPromise.then(() => {
+                // 자동 재생 성공
+                $('#vdo-msg').text("영상이 재생 중입니다...");
+                setTimeout(() => $('#vdo-msg').fadeOut(1000), 3000);
+            }).catch(() => {
+                // 자동 재생 차단 (사파리 등)
+                $('#vdo-msg').css('color', '#60a5fa').text("화면을 터치하면 영상이 시작됩니다.");
+                $(document).one('click touchstart', () => {
+                    vdo.play();
+                    $('#vdo-msg').text("영상이 재생 중입니다...");
+                    setTimeout(() => $('#vdo-msg').fadeOut(1000), 2000);
+                });
+            });
+        }
+
+        // 2. 영상 종료 시 이벤트
+        video.addEventListener('ended', () => {
             vContainer.style.display = 'none'; // 영상 제거
             story.style.display = 'block';    // 스토리 등장
-        };
+        });
+
+        // // 비디오 재생 종료 시 호출
+        // video.onended = () => {
+        //     vContainer.style.display = 'none'; // 영상 제거
+        //     story.style.display = 'block';    // 스토리 등장
+        // };
 
         function goToNext() {
             if (typeof SetFridgeCookie === "function") {
