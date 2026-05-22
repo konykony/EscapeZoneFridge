@@ -14,14 +14,27 @@
     --footer-height: 70px;
 }
 
+/* [추가] 아이폰 확대 및 텍스트 선택 방지 기본 설정 */
 body, html {
     margin: 0; padding: 0; height: 100vh;
     background-color: var(--bg-color);
     font-family: 'Pretendard', sans-serif;
-    color: #334155; overflow: hidden;
+    color: #334155; 
+    overflow: hidden;
+
+    /* 아이폰 더블 탭 확대 방지 */
+    touch-action: manipulation;
+    /* 연타 시 텍스트 선택 방지 */
+    -webkit-user-select: none;
+    user-select: none;
 }
 
-
+/* [추가] 입력창에서는 다시 텍스트 선택이 가능하도록 설정 */
+input, textarea {
+    -webkit-user-select: text;
+    user-select: text;
+    touch-action: auto;
+}
 
 /* [공통] 레이아웃 최적화 */
 main {
@@ -45,38 +58,54 @@ main {
     -webkit-overflow-scrolling: touch;
 }
 
-/* (선택 사항) 스크롤바가 너무 두꺼우면 디자인을 방해하므로 슬림하게 조정합니다. */
+/* 스크롤바 디자인 슬림화 */
 main::-webkit-scrollbar {
     width: 5px;
 }
 main::-webkit-scrollbar-thumb {
-    background-color: rgba(0, 0, 0, 0.05); /* 아주 연하게 처리 */
+    background-color: rgba(0, 0, 0, 0.05);
     border-radius: 10px;
 }
 
-/* [공통] 미션 가이드 박스 여백 조정 */
+/* [공통] 헤더 설정 */
 header {
     position: fixed; top: 0; width: 100%; height: var(--header-height);
     background: white; border-bottom: 1px solid #E2E8F0;
-    /* 패딩을 20px에서 12px로 줄여 내부 여유 공간 확보 */
     padding: 12px 25px; z-index: 1000;
-    box-sizing: border-box; /* 높이값 고정을 위해 추가 */
+    box-sizing: border-box;
 }
 .q-tag { font-weight: 900; color: var(--main-color); font-size: 1.2rem; }
 .user-display { font-weight: 800; color: #64748B; font-size: 0.95rem; }
 .temp-container { width: 100%; height: 12px; background: #F1F5F9; border-radius: 6px; margin-top: 15px; overflow: hidden; }
 .temp-bar { height: 100%; background: linear-gradient(90deg, #FF4B2B, #FF416C); border-radius: 6px; transition: 1s ease-in-out; }
 
+/* [공통] 푸터 설정 및 클릭 최적화 */
 footer {
     position: fixed; bottom: 0; width: 100%; height: var(--footer-height);
     background: white; border-top: 1px solid #E2E8F0;
     display: flex; justify-content: space-around; align-items: center; padding: 15px; z-index: 1000;
 }
-.hint-btn {width: 28%; height: 48px; /* 60px에서 48px로 축소 */
-    border-radius: 18px; border: 1px solid #E2E8F0;
-    background: white; color: #64748B; font-weight: 800; font-size: 0.95rem; cursor: pointer;
+
+/* [수정] 모든 버튼류에 터치 최적화 적용 */
+button, 
+.hint-btn, 
+.btn-move, 
+.key-btn, 
+.start-btn, 
+.next-btn, 
+.opt-card {
+    touch-action: manipulation; /* 아이폰 확대 방지 핵심 */
+    -webkit-tap-highlight-color: transparent; /* 클릭 시 회색 음영 제거 */
+    cursor: pointer;
 }
 
+.hint-btn {
+    width: 28%; height: 48px;
+    border-radius: 18px; border: 1px solid #E2E8F0;
+    background: white; color: #64748B; font-weight: 800; font-size: 0.95rem;
+}
+
+/* [공통] 모달 스타일 */
 .common-modal-overlay {
     display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.6);
     z-index: 3000; align-items: center; justify-content: center; padding: 20px;
@@ -91,125 +120,47 @@ footer {
 .modal-body-text { font-size: 1rem; line-height: 1.5; font-weight: 600; color: #475569; margin-bottom: 20px; }
 .modal-main-btn {
     width: 100%; padding: 18px; border-radius: 20px; border: none;
-    background: var(--main-color); color: white; font-weight: 900; cursor: pointer; font-size: 1.1rem; margin-top: 10px;
+    background: var(--main-color); color: white; font-weight: 900; font-size: 1.1rem; margin-top: 10px;
 }
 .lock-icon { font-size: 2rem; margin-bottom: 10px; display: block; }
-/* [END: COMMON CSS] ======================== */
 
-
-/* [COMMON CSS] 온도계 전체 화면 오버레이 */
+/* [공통] 온도계 오버레이 */
 #thermometer-overlay {
-    display: none;
-    position: fixed;
-    inset: 0;
-    background: rgba(15, 23, 42, 0.9); /* 배경을 어둡게 하여 미션 집중도 향상 */
-    z-index: 9999;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
+    display: none; position: fixed; inset: 0;
+    background: rgba(15, 23, 42, 0.9); z-index: 9999;
+    flex-direction: column; align-items: center; justify-content: center;
 }
-
-/* 상단 메시지 스타일 */
 .temp-msg {
-    color: #ffffff;
-    font-weight: 800;
-    font-size: 1.4rem;
-    text-align: center;
-    margin-bottom: 35px;
-    line-height: 1.5;
-    text-shadow: 0 0 15px rgba(255, 255, 255, 0.3);
+    color: #ffffff; font-weight: 800; font-size: 1.4rem; text-align: center;
+    margin-bottom: 35px; line-height: 1.5; text-shadow: 0 0 15px rgba(255, 255, 255, 0.3);
 }
-
-.thermometer-container {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    margin-top: 10px;
-}
-
+.thermometer-container { display: flex; flex-direction: column; align-items: center; margin-top: 10px; }
 .thermometer-glass {
-    width: 45px; /* 약간 슬림하게 조정 */
-    height: 300px;
-    background: #f1f5f9;
-    border-radius: 25px;
-    position: relative;
-    border: 5px solid #ffffff; /* 테두리 강조 */
-    box-shadow: 0 0 40px rgba(0, 0, 0, 0.3);
-    overflow: hidden;
+    width: 45px; height: 300px; background: #f1f5f9; border-radius: 25px;
+    position: relative; border: 5px solid #ffffff; box-shadow: 0 0 40px rgba(0, 0, 0, 0.3); overflow: hidden;
 }
-
 #mercury-column {
-    position: absolute;
-    bottom: 0;
-    width: 100%;
-    height: 100%; 
-    /* 초기 색상을 우리 1단계 색상인 #FF4B2B로 일치시킴 */
-    background-color: #FF4B2B; 
-    /* JS에서 트랜지션을 제어하므로 CSS에서는 기본값만 설정 */
+    position: absolute; bottom: 0; width: 100%; height: 100%; background-color: #FF4B2B; 
     transition: height 1.8s cubic-bezier(0.4, 0, 0.2, 1), background-color 1.8s ease;
 }
-
 .thermometer-bulb {
-    width: 80px;
-    height: 80px;
-    /* 초기 색상을 우리 1단계 색상인 #FF4B2B로 일치시킴 */
-    background-color: #FF4B2B;
-    border-radius: 50%;
-    margin-top: -30px;
-    border: 5px solid #ffffff;
-    z-index: 10000;
-    box-shadow: 0 5px 20px rgba(0, 0, 0, 0.3);
-    transition: background-color 1.8s ease;
+    width: 80px; height: 80px; background-color: #FF4B2B; border-radius: 50%;
+    margin-top: -30px; border: 5px solid #ffffff; z-index: 10000; box-shadow: 0 5px 20px rgba(0, 0, 0, 0.3);
 }
 
-.temp-msg {
-    color: #ffffff;
-    font-size: 1.5rem;
-    font-weight: 900;
-    margin-bottom: 30px;
-    text-align: center;
-    line-height: 1.4;
-}
-
-/* [공통] 미션 안내 박스 스타일 */
+/* [공통] 지시문 박스 스타일 */
 .mission-guide-box {
-    width: 100%;
-    max-width: 320px;
-    background: #eff6ff;
-    border: 1px solid #bfdbfe;
-    border-radius: 12px;
-    padding: 12px 15px;
-    margin-bottom: 20px;
-    text-align: center;
+    width: 100%; max-width: 320px; background: #eff6ff; border: 1px solid #bfdbfe;
+    border-radius: 12px; padding: 12px 15px; margin-bottom: 20px; text-align: center;
 }
-
-.mission-guide-box p {
-    font-size: 0.85rem; 
-    font-weight: 600; 
-    color: #1e40af; 
-    margin: 0; 
-    line-height: 1.5; 
-    word-break: keep-all;
-}
-
+.mission-guide-box p { font-size: 0.85rem; font-weight: 600; color: #1e40af; margin: 0; line-height: 1.5; word-break: keep-all; }
 
 .mission-text {
-    background: white;
-    padding: 15px;
-    border-radius: 15px;
-    border: 1px solid var(--main-color);
-    box-shadow: 0 4px 10px rgba(0,0,0,0.03);
-    font-size: 1.05rem;
-    line-height: 1.6;
-    font-weight: 600;
-    color: #334155;
-    margin-bottom: 25px;
-    word-break: keep-all;
-    width: 100%;
-    max-width: 450px;
-    text-align: left; /* 왼쪽 정렬 적용 */
-    box-sizing: border-box;
-    flex-shrink: 0; /* 박스가 눌리지 않도록 고정 */
+    background: white; padding: 15px; border-radius: 15px; border: 1px solid var(--main-color);
+    box-shadow: 0 4px 10px rgba(0,0,0,0.03); font-size: 1.05rem; line-height: 1.6;
+    font-weight: 600; color: #334155; margin-bottom: 25px; word-break: keep-all;
+    width: 100%; max-width: 450px; text-align: left; box-sizing: border-box; flex-shrink: 0;
 }
         
 .instruction { font-size: 1.1rem; font-weight: 800; color: #334155; text-align: center; margin-bottom: 15px; word-break: keep-all; }
+/* [END: COMMON CSS] ======================== */
