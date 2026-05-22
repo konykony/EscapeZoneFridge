@@ -2,7 +2,7 @@
 <html lang="ko">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>북극곰 프로젝트 - 문제 1</title>
     
     <link rel="stylesheet" href="../lib/bootstrap-5.3.8-dist/css/bootstrap.min.css" />
@@ -10,22 +10,39 @@
     <link rel="stylesheet" href="../css/common.css">
     
     <style>
+        :root { --p-blue: #5076A1; --bg-gray: #F8FAFC; }
         body, html { margin: 0; padding: 0; height: 100vh; background-color: white; font-family: 'Pretendard', sans-serif; overflow: hidden; }
 
-        /* [핵심 수정] 잘림 방지 및 유연한 레이아웃 */
+        /* 메인 레이아웃 및 세로 스크롤 */
         main {
             margin-top: var(--header-height);
-            /* 100vh 대신 가변 높이(dvh)를 사용하고 최소 높이를 확보합니다. */
-            min-height: calc(100dvh - var(--header-height) - var(--footer-height));
+            height: calc(100dvh - var(--header-height) - var(--footer-height));
             padding: 20px; 
             display: flex; 
             flex-direction: column; 
             align-items: center; 
-            /* justify-content: center를 빼고 상단부터 차례로 정렬하여 잘림 방지 */
             justify-content: flex-start; 
             box-sizing: border-box;
-            overflow-y: auto; /* 내용이 길어지면 내부 스크롤 허용 */
+            overflow-y: auto;
             -webkit-overflow-scrolling: touch;
+        }
+
+        /* [수정] 규칙 안내 영역 가독성 강화 */
+        .instruction-box {
+            width: 100%;
+            max-width: 400px;
+            background: var(--bg-gray);
+            padding: 18px;
+            border-radius: 20px;
+            margin-bottom: 25px;
+            text-align: left;
+            border: 1px solid #E2E8F0;
+        }
+        .instruction-box .title { font-weight: 800; color: var(--p-blue); margin-bottom: 8px; display: block; }
+        .instruction-box .desc { font-size: 1rem; color: #475569; line-height: 1.6; word-break: keep-all; }
+        .instruction-box .flow { 
+            display: inline-block; margin-top: 10px; font-weight: 800; color: #1e293b; 
+            background: white; padding: 4px 12px; border-radius: 10px; border: 1px solid #CBD5E1;
         }
 
         .maze-grid {
@@ -34,13 +51,13 @@
             grid-auto-rows: 1fr;
             gap: 2px; 
             width: 100%; 
-            /* 화면 높이에 따라 미로 크기가 유동적으로 조절되도록 설정 */
             max-width: min(350px, 45vh); 
-            background: var(--border-color);
+            background: #CBD5E1;
             padding: 2px; 
-            border: 2px solid var(--border-color);
+            border: 2px solid #CBD5E1;
             box-shadow: 0 4px 12px rgba(0,0,0,0.05);
-            margin-bottom: 20px;
+            margin-bottom: 25px;
+            flex-shrink: 0;
         }
 
         .cell {
@@ -56,26 +73,24 @@
             color: #334155; 
             transition: 0.2s;
         }
-
-        .cell.selected { background-color: #D1E1F0; font-weight: 900; }
+        .cell.selected { background-color: #D1E1F0; font-weight: 900; color: var(--p-blue); }
         .cell.big-cell { grid-column: span 2; grid-row: span 2; aspect-ratio: auto; padding: 5px; }
         .cell img { width: 100%; height: 100%; object-fit: contain; pointer-events: none; }
 
         .reset-action-btn {
-            padding: 12px 30px;
+            padding: 16px 35px;
             background-color: #64748B;
             color: white;
             border: none;
-            border-radius: 12px;
+            border-radius: 15px;
             font-weight: 800;
-            font-size: 1rem;
+            font-size: 1.1rem;
             cursor: pointer;
             transition: 0.2s;
             box-shadow: 0 4px 6px rgba(0,0,0,0.1);
-            margin-bottom: 10px;
+            margin-bottom: 40px;
             flex-shrink: 0;
         }
-
         .reset-action-btn:active { transform: scale(0.95); background-color: #475569; }
     </style>
 </head>
@@ -84,13 +99,18 @@
     <header id="common-header"></header>
 
     <main>
-        <div class="instruction">
-            📍 해변에서 출발해 도서관까지 가는 길을 찾으세요. 지나는 숫자는 작은 수에서 큰 수로 이어져야 합니다.
+        <div class="instruction-box">
+            <span class="title">📍 이동 규칙</span>
+            <div class="desc">
+                <b>해변</b>에서 출발해 <b></b>까지 가는 길을 찾으세요.<br>
+                숫자가 순서대로 하나씩 커져야 합니다.
+                <div class="flow">1 → 2 → 3 ... 10</div>
+            </div>
         </div>
 
         <div id="maze" class="maze-grid"></div>
 
-        <button id="reset-maze" class="reset-action-btn">경로 초기화</button>
+        <button id="reset-maze" class="reset-action-btn">다시 선택하기</button>
     </main>
 
     <footer id="common-footer"></footer>
@@ -98,10 +118,11 @@
     <script src="../lib/jquery-3.6.0.min.js"></script>
     <script src="../js/common.js"></script>
     <script>
+        // [수정] 아이들이 이해하기 쉽게 힌트 문구 조정
         window.hints = [
-            "시작은 해변(좌측 상단)이고 마지막은 도서관(우측 하단) 입니다. 해변부터 눌러주세요.",
-            "해변(좌측 상단)을 선택한 후 바로 아래 '1'부터 눌러주세요.",
-            "해변↓1↓2→3↓4↓5↓6→7↑8→9↓10→도서관"
+            "시작은 해변(좌측 상단)이고 마지막은 도서관(우측 하단) 입니다. 1, 2, 3... 순서대로 하나씩 더 큰 숫자를 찾아야 해요!",
+            "해변을 선택한 후 바로 아래에 있는 '1'부터 차례대로 눌러주세요.",
+            "정답 경로: 해변↓1↓2→3↓4↓5↓6→7↑8→9↓10→도서관"
         ];
 
         const gridLayout = [
@@ -122,8 +143,13 @@
                     if (val === 'X') return;
                     let cellClass = 'cell';
                     let displayVal = val;
-                    if (val === 'S') { cellClass += ' big-cell'; displayVal = '<img src="https://img.icons8.com/emoji/96/beach-with-umbrella.png">'; }
-                    else if (val === 'E') { cellClass += ' big-cell'; displayVal = '<img src="https://img.icons8.com/emoji/96/department-store.png">'; }
+                    if (val === 'S') { 
+                        cellClass += ' big-cell'; 
+                        displayVal = '<img src="https://img.icons8.com/emoji/96/beach-with-umbrella.png">'; 
+                    } else if (val === 'E') { 
+                        cellClass += ' big-cell'; 
+                        displayVal = '<img src="https://img.icons8.com/emoji/96/department-store.png">'; 
+                    }
                     const cell = $(`<div class="${cellClass}" data-r="${r}" data-c="${c}">${displayVal}</div>`);
                     cell.click(function() { toggleCell(r, c, val, $(this)); });
                     maze.append(cell);
@@ -138,21 +164,29 @@
                 return [[r, c]];
             };
             const c1List = getCoords(r1, c1, v1), c2List = getCoords(r2, c2, v2);
-            for (let p1 of c1List) for (let p2 of c2List) if (Math.abs(p1[0]-p2[0])<=1 && Math.abs(p1[1]-p2[1])<=1) return true;
+            for (let p1 of c1List) for (let p2 of c2List) 
+                if (Math.abs(p1[0]-p2[0])<=1 && Math.abs(p1[1]-p2[1])<=1) return true;
             return false;
         }
 
         function toggleCell(r, c, val, el) {
             const id = val === 'S' ? 'START' : (val === 'E' ? 'END' : `${r},${c}`);
+            
             if (selectedPath.length > 0 && selectedPath[selectedPath.length-1].id === id) {
-                selectedPath.pop(); el.removeClass('selected'); return;
+                selectedPath.pop(); 
+                el.removeClass('selected'); 
+                return;
             }
-            if (!selectedPath.length) { if (val !== 'S') return; }
-            else {
+            
+            if (!selectedPath.length) { 
+                if (val !== 'S') return; 
+            } else {
                 const last = selectedPath[selectedPath.length-1];
                 if (!isAdjacent(last.r, last.c, last.val, r, c, val) || selectedPath.find(p => p.id === id)) return;
             }
-            selectedPath.push({ r, c, val, id }); el.addClass('selected');
+            
+            selectedPath.push({ r, c, val, id }); 
+            el.addClass('selected');
             if (val === 'E') validate();
         }
 
@@ -169,7 +203,9 @@
             
             showResultModal({
                 success: ok,
-                message: ok ? '성공적으로 도서관에 도착했습니다.' : '1부터 10까지 순서대로 지나가야 합니다! 다시 찾아보세요.',
+                message: ok ? 
+                    '도서관에 무사히 도착했습니다! 다음 미션으로 가볼까요?' : 
+                    '길을 잘못 찾은 것 같아요. 숫자가 1부터 10까지 차례대로 커져야 합니다!',
                 onRetry: () => { 
                     selectedPath = []; 
                     $('.cell').removeClass('selected'); 

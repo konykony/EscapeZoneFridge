@@ -10,167 +10,80 @@
     <link rel="stylesheet" href="../css/common.css">
 
     <style>
-        :root { 
-            --p-blue: #0ea5e9; 
-            --h-yellow: #fef08a; 
-        }
-
-        /* 1. 전체 레이아웃: 아이폰/갤럭시 S26 세로 대응 */
-        body, html { 
-            background-color: #f1f5f9; 
-            margin: 0; padding: 0; 
-            /* 가로 스크롤은 막고 세로는 시스템에 맡깁니다 */
-            overflow-x: hidden; 
-            -webkit-user-select:none; 
-            user-select:none; 
-        }
+        :root { --p-blue: #0ea5e9; }
+        body, html { background-color: #f1f5f9; margin: 0; padding: 0; overflow-x: hidden; user-select:none; }
         
         main { 
-            /* [중요] common.css의 높이값과 동기화하여 내부 스크롤 활성화 */
             height: calc(100dvh - var(--header-height, 85px) - var(--footer-height, 70px)); 
-            display: flex; 
-            flex-direction: column; 
-            align-items: center; 
-            /* 상단 밀착 정렬 */
-            justify-content: flex-start; 
-            padding: 15px 20px; 
-            gap: 12px; 
-            box-sizing: border-box;
-            
-            /* 세로 스크롤 설정 */
-            overflow-y: auto; 
-            overflow-x: hidden;
-            -webkit-overflow-scrolling: touch; /* iOS 부드러운 스크롤 */
-            
-            /* [복구] 하단 선택지가 푸터 바에 가려지지 않도록 충분한 여백 추가 */
-            padding-bottom: 60px; 
+            display: flex; flex-direction: column; align-items: center; 
+            padding: 10px 20px; gap: 10px; box-sizing: border-box;
+            overflow-y: auto; -webkit-overflow-scrolling: touch; 
         }
 
-        /* 2. 상단 지시문: 슬림화하여 공간 확보 */
+        .penalty-banner {
+            width: 100%; max-width: 420px; background: rgba(244, 63, 94, 0.1); 
+            border: 1px solid rgba(244, 63, 94, 0.3); padding: 8px; border-radius: 12px;
+            text-align: center; font-size: 0.85rem; font-weight: 800; color: #e11d48;
+            flex-shrink: 0;
+        }
+
         .instruction {
-            width: 100%; 
-            max-width: 420px; 
-            background: #ffffff; 
-            border: 2px solid #3b82f6; 
-            border-radius: 20px; 
-            padding: 12px 15px; 
-            text-align: center;
-            font-weight: 700; 
-            color: #1e40af; 
-            font-size: 0.95rem;
-            line-height: 1.4; 
-            box-shadow: 0 4px 10px rgba(59, 130, 246, 0.1);
-            margin: 0;
-            flex-shrink: 0; /* 스크롤 시 찌그러짐 방지 */
+            width: 100%; max-width: 420px; background: #ffffff; 
+            border: 2px solid #3b82f6; border-radius: 18px; 
+            padding: 10px 15px; text-align: center;
+            font-weight: 700; color: #1e40af; font-size: 0.95rem; line-height: 1.4;
+            flex-shrink: 0;
         }
 
-        /* 3. 프리뷰 카드 영역: 높이를 줄여 선택지 노출 확대 */
         .preview-card {
-            width: 100%; 
-            max-width: 380px; 
-            height: 250px; /* 280px에서 250px로 축소 */
-            background: #ffffff; 
-            border-radius: 35px;
-            position: relative; 
-            box-shadow: 0 10px 30px rgba(0,0,0,0.05); 
-            border: 2px solid #e2e8f0;
-            overflow: hidden;
-            flex-shrink: 0; /* 스크롤 시 찌그러짐 방지 */
+            width: 100%; max-width: 380px; height: 230px; 
+            background: #ffffff; border-radius: 30px;
+            position: relative; border: 2px solid #e2e8f0; overflow: hidden; flex-shrink: 0;
         }
 
-        #game-overlay {
-            position: absolute; inset: 0; background: #ffffff; z-index: 1; border-radius: 35px;
-            display: flex; flex-direction: column; align-items: center; justify-content: center;
+        /* 1. 타이머 영역을 별도 위치로 고정 (깃발과 겹치지 않음) */
+        .timer-box {
+            position: absolute; top: 15px; left: 0; width: 100%;
+            text-align: center; font-weight: 900; font-size: 1.1rem; z-index: 50;
+            color: #ef4444; background: rgba(255,255,255,0.8);
         }
+
+        #game-overlay { position: absolute; inset: 0; background: #ffffff; z-index: 10; display: flex; align-items: center; justify-content: center; }
         
-        .status-msg { 
-            width: 100%; text-align: center; font-weight: 800; font-size: 1.05rem; line-height: 1.4;
-            position: absolute; top: 18px; left: 0; z-index: 20; padding: 0 20px;
-        }
-        #timer-text { color: #f43f5e; font-weight: 900; font-size: 1.2rem; }
-        .count-text { font-size: 5rem; font-weight: 900; color: var(--p-blue); z-index: 30; }
-
-        /* 4. 깃발 드로잉 요소 */
+        /* 2. 깃발 위치를 하단으로 살짝 이동 */
         .flag-unit { 
-            position: absolute; width: 120px; height: 150px; 
-            top: 60%; left: 50%; transform: translate(-50%, -50%);
-            opacity: 0; z-index: 10; pointer-events: none; 
-            transition: opacity 0.3s;
+            position: absolute; width: 110px; height: 140px; 
+            top: 65%; left: 50%; transform: translate(-50%, -50%);
+            opacity: 0; transition: opacity 0.3s;
         }
         
-        .part { transition: all 0.2s; background: transparent; border: 1.8px solid #94a3b8; box-sizing: border-box; }
-        .finial-draw { position: absolute; left: 0px; top: -10px; width: 26px; height: 26px; border-radius: 50%; z-index: 50; }
-        .pole-draw { position: absolute; left: 8px; bottom: 0; width: 12px; height: 100%; border-radius: 6px; z-index: 30; }
-        .canvas-draw { position: absolute; left: 20px; top: 15px; width: 95px; height: 65px; z-index: 30; }
-        .star-draw { 
-            position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%); 
-            width: 38px; height: 38px; z-index: 60; display: none; 
-            clip-path: polygon(50% 0%, 61% 35%, 98% 35%, 68% 57%, 79% 91%, 50% 70%, 21% 91%, 32% 57%, 2% 35%, 39% 35%);
-        }
+        .part { transition: all 0.2s; background: transparent; border: 1.5px solid #94a3b8; box-sizing: border-box; }
+        .finial-draw { position: absolute; left: 0; top: -8px; width: 22px; height: 22px; border-radius: 50%; z-index: 50; }
+        .pole-draw { position: absolute; left: 6px; bottom: 0; width: 10px; height: 100%; border-radius: 5px; z-index: 30; }
+        .canvas-draw { position: absolute; left: 16px; top: 12px; width: 90px; height: 60px; z-index: 30; }
+        .star-draw { position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%); width: 34px; height: 34px; z-index: 60; display: none; clip-path: polygon(50% 0%, 61% 35%, 98% 35%, 68% 57%, 79% 91%, 50% 70%, 21% 91%, 32% 57%, 2% 35%, 39% 35%); }
 
-        .highlight { background-color: #fef08a !important; border: 4px solid #facc15 !important; animation: pulse-active 0.6s infinite alternate; z-index: 100 !important; }
-        @keyframes pulse-active { from { opacity: 1; } to { opacity: 0.6; } }
-        .gray-out { background-color: #e2e8f0 !important; border-color: #cbd5e1 !important; }
-
-        /* 5. 컨트롤 및 조립 영역 */
-        .control-section { 
-            width: 100%; 
-            max-width: 450px; 
-            text-align: center; 
-            margin-top: 5px;
-            flex-grow: 1; /* 남은 공간을 차지하여 스크롤 유도 */
-        }
-
-        .btn-game { 
-            padding: 16px 55px; 
-            border-radius: 50px; 
-            border: none; 
-            background: var(--p-blue); 
-            color: white; 
-            font-weight: 900; 
-            font-size: 1.3rem; 
-            cursor: pointer; 
-            box-shadow: 0 6px 15px rgba(14,165,233,0.3); 
-            touch-action: manipulation;
-        }
-
+        .btn-game { padding: 14px 40px; border-radius: 50px; border: none; background: var(--p-blue); color: white; font-weight: 900; font-size: 1.1rem; }
+        
         .category-group { display: none; }
         .category-group.active { display: block; }
-        .category-title { font-size: 1.05rem; font-weight: 800; color: #1e293b; margin-bottom: 12px; }
-        
-        .option-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; padding: 5px; }
-        .opt-card { 
-            background: white; border-radius: 15px; padding: 12px 5px; 
-            text-align: center; cursor: pointer; 
-            box-shadow: 0 4px 10px rgba(0,0,0,0.04); 
-            border: 2.5px solid transparent; 
-            touch-action: manipulation; /* 아이폰 확대 방지 */
-        }
-        .color-chip { width: 36px; height: 36px; margin: 0 auto 8px; border-radius: 10px; border: 1px solid rgba(0,0,0,0.1); }
-        .label { font-size: 0.85rem; font-weight: 800; }
-
-        /* 스크롤바 커스텀 */
-        main::-webkit-scrollbar { width: 4px; }
-        main::-webkit-scrollbar-thumb { background: rgba(0,0,0,0.1); border-radius: 10px; }
+        .option-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; padding: 5px; }
+        .opt-card { background: white; border-radius: 12px; padding: 10px 5px; text-align: center; border: 2px solid transparent; box-shadow: 0 3px 8px rgba(0,0,0,0.04); cursor: pointer; }
+        .color-chip { width: 32px; height: 32px; margin: 0 auto 6px; border-radius: 8px; border: 1px solid rgba(0,0,0,0.05); }
+        .label { font-size: 0.8rem; font-weight: 800; }
     </style>
 </head>
 <body>
     <header id="common-header"></header>
-
     <main>
+        <div class="penalty-banner">⚠️ 틀리면 기록에 3분이 추가됩니다!</div>
         <div class="instruction">
-            행사장 입구에 도착했습니다. 알맞은 깃발을 찾아야합니다.
-            각 요소의 색상을 잘 기억했다가 똑같이 맞춰보세요!
+            나무심기 부스를 찾으려면 이 <b>깃발 순서</b>를 기억하고 똑같이 맞춰보세요!
         </div>
 
         <div class="preview-card">
-            <p class="status-msg" id="display-msg">준비가 되면 시작 버튼을 눌러주세요!</p>
-            <div id="game-overlay">
-                <div id="countdown-layer" style="display:none;">
-                    <div class="count-text" id="cnt-num">3</div>
-                </div>
-            </div>
-            
+            <div id="timer-display" class="timer-box" style="display:none;"></div>
+            <div id="game-overlay"><button class="btn-game" id="main-btn" onclick="startSequence()">깃발 확인하기</button></div>
             <div class="flag-unit" id="f-unit">
                 <div class="part finial-draw" id="d-finial"></div>
                 <div class="part pole-draw" id="d-pole"></div>
@@ -178,85 +91,54 @@
             </div>
         </div>
 
-        <div class="control-section">
-            <div class="btn-action-area" id="action-zone">
-                <button class="btn-game" id="main-btn" onclick="startSequence()">미션 시작</button>
-            </div>
-
+        <div class="control-section" style="width:100%; max-width:450px;">
             <div id="assembly-zone" style="display: none;">
-                <div class="category-group active" id="st-1"><p class="category-title">1. 꼭대기 장식(깃봉) 색깔은?</p><div class="option-grid" id="opt-1"></div></div>
-                <div class="category-group" id="st-2"><p class="category-title">2. 긴 막대기(깃대) 색깔은?</p><div class="option-grid" id="opt-2"></div></div>
-                <div class="category-group" id="st-3"><p class="category-title">3. 깃발 배경 색깔은?</p><div class="option-grid" id="opt-3"></div></div>
-                <div class="category-group" id="st-4"><p class="category-title">4. 가운데 별 무늬 색깔은?</p><div class="option-grid" id="opt-4"></div></div>
+                <div class="category-group active" id="st-1"><p style="font-weight:800; margin-bottom:10px;">1. 깃봉 색깔은?</p><div class="option-grid" id="opt-1"></div></div>
+                <div class="category-group" id="st-2"><p style="font-weight:800; margin-bottom:10px;">2. 깃대 색깔은?</p><div class="option-grid" id="opt-2"></div></div>
+                <div class="category-group" id="st-3"><p style="font-weight:800; margin-bottom:10px;">3. 깃발 배경 색깔은?</p><div class="option-grid" id="opt-3"></div></div>
+                <div class="category-group" id="st-4"><p style="font-weight:800; margin-bottom:10px;">4. 별 색깔은?</p><div class="option-grid" id="opt-4"></div></div>
             </div>
         </div>
     </main>
-
     <footer id="common-footer"></footer>
 
     <script src="../lib/jquery-3.6.0.min.js"></script>
     <script src="../js/common.js"></script>
     <script>
-        
-        // 힌트 데이터
-        window.hints = [
-            "깃발 색상을 빠르게 기억하고 맞춰봅니다.",
-            "깃발 색상은 계속 바뀝니다.",
-            "빨강, 주황, 노랑, 초록, 파랑, 보라색 중에 있어요."
-        ];
-
-
+        window.hints = ["위에서부터 아래로 색깔을 외우세요.", "실패 시 3분 페널티가 있습니다!", "다시 시작할 때마다 깃발 색깔은 계속 바뀝니다."];
         const PAGE_NUM = 10;
         let obsTime = parseInt(localStorage.getItem('f_time')) || 1; 
         let curStep = 1, ans = {}, user = {};
-        
-        const COLORS = {
-            red: { hex: '#ef4444', label: '빨강' },
-            orange: { hex: '#f97316', label: '주황' },
-            yellow: { hex: '#facc15', label: '노랑' },
-            green: { hex: '#22c55e', label: '초록' },
-            blue: { hex: '#3b82f6', label: '파랑' },
-            purple: { hex: '#a855f7', label: '보라' }
-        };
-
+        const COLORS = { red: { hex: '#ef4444', label: '빨강' }, orange: { hex: '#f97316', label: '주황' }, yellow: { hex: '#facc15', label: '노랑' }, green: { hex: '#22c55e', label: '초록' }, blue: { hex: '#3b82f6', label: '파랑' }, purple: { hex: '#a855f7', label: '보라' } };
         const steps = ['finial', 'pole', 'color', 'star'];
 
         $(document).ready(() => { if (typeof initializeUI === "function") initializeUI(PAGE_NUM); });
 
         function startSequence() {
-            $('#action-zone, #assembly-zone').hide();
-            $('#display-msg').html('깃발의 모습을 잘 기억하세요!').show();
-            $('#countdown-layer').show();
+            $('#main-btn').hide();
             $('#f-unit').css('opacity', 0);
-            
-            let n = 3; $('#cnt-num').text(n);
-            const timer = setInterval(() => {
-                n--; if(n > 0) $('#cnt-num').text(n);
-                else { clearInterval(timer); showPreview(); }
+            let n = 3; 
+            const timer = setInterval(() => { 
+                $('#game-overlay').html(`<h1 style="font-weight:900; font-size:3rem;">${n}</h1>`);
+                n--; if(n < 0) { clearInterval(timer); showPreview(); } 
             }, 1000);
         }
 
         function showPreview() {
-            // [로직] 정답 색상 중복 방지 (6개 중 4개 셔플)
             const colorKeys = Object.keys(COLORS).sort(() => Math.random() - 0.5);
             steps.forEach((s, i) => ans[s] = colorKeys[i]);
-
-            // 각 단계별 랜덤 3가지 선택지 생성 (정답 포함)
             renderRandomOptions();
-
-            $('.part').removeClass('highlight gray-out');
-            drawFlag(ans); $('#d-star').show();
+            $('.part').css({'background-color':'transparent', 'border':'1.5px solid #94a3b8'});
+            drawFlag(ans); 
+            $('#game-overlay').hide(); $('#f-unit').css('opacity', 1);
             
-            $('#countdown-layer').hide();
-            $('#f-unit').css('opacity', 1);
-            $('#game-overlay').show(); 
-
-            $('#display-msg').html(`남은 시간: <span id="timer-text">${obsTime}</span>초`);
+            // 타이머 표시 영역 활성화
+            $('#timer-display').show().text(`남은 시간: ${obsTime}초`);
             let timeLeft = obsTime;
-            const previewTimer = setInterval(() => {
-                timeLeft--;
-                if(timeLeft > 0) $('#timer-text').text(timeLeft);
-                else { clearInterval(previewTimer); startAssembly(); }
+            const previewTimer = setInterval(() => { 
+                timeLeft--; 
+                if(timeLeft > 0) $('#timer-display').text(`남은 시간: ${timeLeft}초`);
+                else { clearInterval(previewTimer); $('#timer-display').hide(); startAssembly(); } 
             }, 1000);
         }
 
@@ -264,49 +146,37 @@
             steps.forEach((step, idx) => {
                 const target = $(`#opt-${idx + 1}`).empty();
                 const correctColor = ans[step];
-                
-                // 정답을 제외한 나머지 5개 중 2개 랜덤 추출
                 const others = Object.keys(COLORS).filter(k => k !== correctColor).sort(() => Math.random() - 0.5).slice(0, 2);
-                
-                // 정답 + 오답 2개 = 총 3개를 다시 셔플하여 배치
                 const finalThree = [correctColor, ...others].sort(() => Math.random() - 0.5);
-
                 finalThree.forEach(key => {
                     const item = COLORS[key];
-                    target.append(`
-                        <div class="opt-card" onclick="pick('${step}', '${key}')">
-                            <div class="color-chip" style="background:${item.hex}"></div>
-                            <div class="label">${item.label}</div>
-                        </div>
-                    `);
+                    target.append(`<div class="opt-card" onclick="pick('${step}', '${key}')"><div class="color-chip" style="background:${item.hex}"></div><div class="label">${item.label}</div></div>`);
                 });
             });
         }
 
         function startAssembly() {
             user = { finial:null, pole:null, color:null, star:null };
-            resetFlag();
-            $('#display-msg').hide();
-            $('#assembly-zone').fadeIn(300);
-            guide();
+            $('#game-overlay').hide();
+            $('.part').css({'background-color':'transparent', 'border':'1.5px solid #cbd5e1'});
+            $('#assembly-zone').fadeIn(300); guide();
         }
 
         function pick(type, val) {
             user[type] = val; 
             const target = (type === 'color') ? '#d-canvas' : (type === 'finial' ? '#d-finial' : (type === 'pole' ? '#d-pole' : '#d-star'));
-            $(target).css({'background-color': COLORS[val].hex, 'border':'none'}).removeClass('gray-out');
-
+            $(target).css({'background-color': COLORS[val].hex, 'border':'none'});
             $(`#st-${curStep}`).hide(); curStep++;
             if (curStep <= 4) { $(`#st-${curStep}`).addClass('active').show(); guide(); }
-            else { $('.part').removeClass('highlight'); verify(); }
+            else { verify(); }
         }
 
         function guide() {
             $('.part').removeClass('highlight'); 
-            if (curStep === 1) { $('#d-finial').addClass('highlight'); $('#d-pole, #d-canvas').addClass('gray-out'); }
-            else if (curStep === 2) { $('#d-pole').addClass('highlight').removeClass('gray-out'); }
-            else if (curStep === 3) { $('#d-canvas').addClass('highlight').removeClass('gray-out'); }
-            else if (curStep === 4) { $('#d-star').show().addClass('highlight').removeClass('gray-out'); }
+            if (curStep === 1) $('#d-finial').addClass('highlight');
+            else if (curStep === 2) $('#d-pole').addClass('highlight');
+            else if (curStep === 3) $('#d-canvas').addClass('highlight');
+            else if (curStep === 4) $('#d-star').show().addClass('highlight');
         }
 
         function drawFlag(d) {
@@ -316,37 +186,18 @@
             if(d.star) $('#d-star').show().css({'background-color': COLORS[d.star].hex, 'border':'none'});
         }
 
-        function resetFlag() {
-            $('.part').css({'background-color':'transparent', 'border':'1.8px solid #cbd5e1'}).removeClass('highlight gray-out').hide();
-            $('.finial-draw, .pole-draw, .canvas-draw').show();
-            $('#f-unit').css('opacity', 1);
-        }
-
         function verify() {
             const isOk = steps.every(s => ans[s] === user[s]);
             if(isOk) {
                 localStorage.removeItem('f_time');
-                $('#f-unit').css('opacity', 0);
-                showResultModal({ success: true, message: "완벽하게 복원했습니다!", pageNum: PAGE_NUM });
+                showResultModal({ success: true, message: "축하합니다! 부스를 찾았습니다.", pageNum: PAGE_NUM });
             } else {
+                if (typeof ApplyTimePenalty === "function") ApplyTimePenalty(180000); 
                 obsTime++; localStorage.setItem('f_time', obsTime);
-                $('#assembly-zone').hide();
-                $('#game-overlay').show();
-                // [요청] 틀리면 전체 회색
-                $('.part').css({'background-color': '#94a3b8', 'border': '1.8px solid #64748b'});
-                $('#f-unit').css('opacity', 1);
-                $('#display-msg').html('<span class="text-danger">기억이 틀렸습니다!</span><br><small>다음 관찰 시간: ' + obsTime + '초</small>').show();
-                $('#action-zone').show();
-                $('#main-btn').text('재도전 하기').attr('onclick', 'retryDirectly()');
+                $('#assembly-zone').hide(); $('#game-overlay').show();
+                $('#game-overlay').html('<div style="color:#e11d48; font-weight:900;">깃발이 틀렸습니다!<br>기록에 3분이 추가됩니다.</div>').show();
+                setTimeout(() => { location.reload(); }, 2000);
             }
-        }
-
-        function retryDirectly() {
-            curStep = 1; 
-            $('#action-zone, #assembly-zone').hide();
-            $('.category-group').removeClass('active').hide();
-            $('#st-1').addClass('active').show();
-            startSequence();
         }
     </script>
 </body>

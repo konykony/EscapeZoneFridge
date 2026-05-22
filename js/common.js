@@ -513,6 +513,23 @@ function resetAndMain() {
     location.href = 'index.html';
 }
 
+/**
+ * 시작 시간을 특정 밀리초(ms)만큼 과거로 돌려 최종 기록에 페널티를 부여합니다.
+ * @param {number} ms 페널티 시간 (3분 = 180000)
+ */
+function ApplyTimePenalty(ms) {
+    if (typeof GetFridgeCookie === 'function' && typeof SetFridgeCookie === 'function') {
+        let currentStartStr = GetFridgeCookie('fridge_start_time');
+        let currentStartTime = currentStartStr ? parseInt(currentStartStr) : Date.now();
+        
+        // 시작 시간을 ms만큼 과거로 밀어버림
+        let newStartTime = currentStartTime - ms;
+        SetFridgeCookie('fridge_start_time', newStartTime, 24);
+        
+        console.log(`[Penalty Applied] 시작 시간이 ${ms / 1000}초 전으로 수정되었습니다.`);
+    }
+}
+
 // window.runTemperatureSequence = function(pageNum) {
 //     // 1. 오버레이 생성 및 초기화 (기존과 동일)
 //     if (!$('#thermometer-overlay').length) {
