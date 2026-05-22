@@ -17,47 +17,60 @@
         body, html { 
             background-color: var(--bg-color); 
             font-family: 'Pretendard', sans-serif; 
-            height: 100dvh; 
+            height: 100%; 
             margin: 0; padding: 0;
-            overflow: hidden; 
             color: #334155;
+            /* 바깥쪽 스크롤바 숨김 */
+            overflow: hidden; 
             -webkit-user-select: none;
             user-select: none;
         }
 
+        /* [핵심] 컨테이너에 세로 스크롤을 넣었습니다 */
         .index-container { 
             display: flex; 
             flex-direction: column; 
-            justify-content: flex-start; 
             align-items: center; 
-            height: 100%; 
-            padding: 40px 30px; 
+            height: 100dvh; /* 전체 화면 높이 */
+            padding: 40px 20px; 
             box-sizing: border-box; 
+            
+            /* 세로 스크롤 설정 */
+            overflow-y: auto; 
+            overflow-x: hidden;
+            -webkit-overflow-scrolling: touch; /* 아이폰 부드러운 스크롤 */
+        }
+
+        .content-wrapper {
+            width: 100%;
+            max-width: 340px; 
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            /* 하단 버튼이 푸터 등에 가리지 않게 여백 추가 */
+            padding-bottom: 50px; 
         }
         
         .image-cover { 
-            max-height: 45vh; 
-            width: auto; 
-            max-width: 100%;
-            border-radius: 20px; 
-            box-shadow: 0 10px 30px rgba(0,0,0,0.08); 
-            margin-bottom: 25px; 
-            display: block; 
-            flex-shrink: 0;
+            width: 100%; 
+            height: auto;
+            border-radius: 24px; 
+            box-shadow: 0 15px 35px rgba(0,0,0,0.1); 
+            margin-bottom: 30px; 
+            display: block;
+            flex-shrink: 0; /* 이미지 찌그러짐 방지 */
         }
 
         .input-group-custom { 
             display: none; 
             width: 100%;
-            max-width: 320px;
             margin-bottom: 15px; 
-            flex-shrink: 0;
         } 
 
         .user-input { 
             width: 100%; 
-            padding: 16px; 
-            border-radius: 18px; 
+            padding: 18px; 
+            border-radius: 20px; 
             border: 2px solid #CBD5E1; 
             text-align: center; 
             font-size: 1.1rem; 
@@ -65,72 +78,62 @@
             background: white;
             box-sizing: border-box;
             outline: none;
-            transition: border-color 0.2s;
             -webkit-user-select: text;
             user-select: text;
         }
-        .user-input:focus { border-color: var(--main-color); }
 
         .btn-group-custom {
             display: flex;
             width: 100%;
-            max-width: 320px;
-            gap: 10px;
-            flex-shrink: 0;
+            gap: 12px;
+            margin-top: 10px;
         }
 
         .start-btn { 
             flex: 3; 
-            border-radius: 18px; 
+            border-radius: 20px; 
             font-weight: 900; 
-            font-size: 1.15rem; 
+            font-size: 1.2rem; 
             background-color: var(--main-color); 
             border: none; 
-            padding: 18px 0; 
+            padding: 20px 0; 
             color: white; 
-            box-shadow: 0 6px 15px rgba(80,118,161,0.2); 
-            transition: 0.2s; 
-            cursor: pointer;
+            box-shadow: 0 8px 18px rgba(80,118,161,0.25); 
             white-space: nowrap;
         }
 
         .reset-btn {
-            flex: 1; 
-            border-radius: 18px;
+            flex: 1.2; 
+            border-radius: 20px;
             font-weight: 800;
-            font-size: 0.9rem;
+            font-size: 1rem;
             background-color: #E2E8F0;
             color: #64748B;
             border: none;
-            padding: 18px 0;
-            cursor: pointer;
-            transition: 0.2s;
+            padding: 20px 0;
             display: none;
         }
 
         .start-btn:active, .reset-btn:active { 
-            transform: scale(0.97); 
-            filter: brightness(0.9); 
-        }
-
-        @media (max-height: 550px) {
-            .image-cover { max-height: 30vh; }
-            .index-container { padding: 20px; }
+            transform: scale(0.96); 
+            opacity: 0.9; 
         }
     </style>
 </head>
 <body>
 
     <div class="index-container">
-        <img src="../img/book_cover.png" id="cover-image" class="image-cover" alt="Cover">
+        <div class="content-wrapper">
+            <img src="../img/book_cover.png" id="cover-image" class="image-cover" alt="Cover">
 
-        <div id="name-input-section" class="input-group-custom">
-            <input type="text" id="user-name" class="user-input" placeholder="이름을 입력해 주세요" maxlength="10">
-        </div>
+            <div id="name-input-section" class="input-group-custom">
+                <input type="text" id="user-name" class="user-input" placeholder="이름을 입력해 주세요" maxlength="10">
+            </div>
 
-        <div id="button-group" class="btn-group-custom">
-            <button id="main-btn" class="start-btn">시작하기</button>
-            <button id="reset-btn" class="reset-btn" onclick="location.href='reset.html'">초기화</button>
+            <div id="button-group" class="btn-group-custom">
+                <button id="main-btn" class="start-btn">시작하기</button>
+                <button id="reset-btn" class="reset-btn" onclick="location.href='reset.html'">초기화</button>
+            </div>
         </div>
     </div>
 
@@ -150,71 +153,29 @@
 
         $(document).ready(function() {
             const savedName = FridgeCookie.get('fridge_name');
-            const savedIdx = FridgeCookie.get('fridge_idx');
-            const status = FridgeCookie.get('fridge_status');
-
-            // [핵심 수정] 무한 루프 방지 로직
-            // 1. 이미 끝난 상태면 결과 페이지로 (단, 결과 페이지에서 다시 index로 보내면 안 됨)
-            if (status === 'finished') {
-                // 무한 루프 방지를 위해 현재 URL이 index.html인 경우만 리다이렉트
-                if(location.pathname.indexOf('index.html') > -1 || location.pathname.endsWith('/')) {
-                    // location.href = 'finish.html'; // 주석 처리하거나 필요시 활성화
-                }
-            } 
             
-            // 2. 이름 데이터 존재 여부에 따른 UI 세팅
             if (savedName) {
                 $('#main-btn').text('이어서 진행하기');
-                $('#reset-btn').show();
+                $('#reset-btn').css('display', 'block');
                 $('#name-input-section').hide();
             } else {
-                $('#main-btn').text('시작하기');
-                $('#reset-btn').hide();
                 $('#name-input-section').show();
             }
 
-            // [핵심 수정] 버튼 클릭 이벤트 로직 최적화
             $('#main-btn').click(function() {
                 const currentName = FridgeCookie.get('fridge_name');
-                
                 if (!currentName) {
-                    // [새 게임] 이름 입력 필수 체크
                     const name = $('#user-name').val().trim();
-                    if (!name) { 
-                        alert("이름을 입력해주세요!"); 
-                        return; 
-                    }
-                    
-                    // 초기 데이터 세팅
-                    const startTime = Date.now();
-                    FridgeCookie.set('fridge_start_time', startTime);
+                    if (!name) { alert("이름을 입력해주세요!"); return; }
+                    FridgeCookie.set('fridge_start_time', Date.now());
                     FridgeCookie.set('fridge_name', name);
-                    FridgeCookie.set('fridge_idx', '0'); // 문자열로 저장 권장
+                    FridgeCookie.set('fridge_idx', '0'); 
                     FridgeCookie.set('fridge_status', 'playing');
-                    
-                    // 시작 페이지로 이동
                     location.href = 'question_0.html';
                 } else {
-                    // [이어하기] 저장된 인덱스가 있으면 해당 페이지로, 없으면 0번으로
                     const idx = FridgeCookie.get('fridge_idx') || '0';
-                    
-                    // 만약 idx가 'finished' 같은 상태값이 섞여들어갔을 경우 예외처리
-                    if(isNaN(idx)) {
-                         location.href = 'question_0.html';
-                    } else {
-                         location.href = `question_${idx}.html`;
-                    }
+                    location.href = isNaN(idx) ? 'question_0.html' : `question_${idx}.html`;
                 }
-            });
-
-            // 너비 동기화
-            $('#cover-image').on('load', function() {
-                const imgWidth = $(this).width();
-                if (imgWidth > 100) {
-                    $('#button-group, #name-input-section').css('width', imgWidth + 'px');
-                }
-            }).each(function() {
-                if(this.complete) $(this).trigger('load');
             });
         });
     </script>
