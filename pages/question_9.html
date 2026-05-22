@@ -12,94 +12,92 @@
     <style>
         /* 1. 전체 레이아웃 설정 */
         body, html { 
-            overflow: hidden; 
+            /* 세로 스크롤을 허용하고 가로는 막습니다 */
+            overflow-y: auto; 
+            overflow-x: hidden;
             background-color: #f8fafc; 
             margin: 0; padding: 0; 
+            height: 100%; /* 전체 높이 확보 */
         }
         
         main {
-            /* 헤더/푸터 제외 영역 */
-            height: calc(100vh - var(--header-height) - var(--footer-height));
+            /* [중요] height를 고정(calc)하지 않고 min-height로 설정하여 내용이 많으면 늘어나게 합니다 */
+            min-height: calc(100vh - var(--header-height) - var(--footer-height));
             display: flex; 
             flex-direction: column; 
             align-items: center; 
-            /* center 대신 flex-start를 사용하여 위로 바짝 붙입니다 */
             justify-content: flex-start; 
-            gap: 12px; /* 요소들 사이의 간격 */
-            padding: 15px 20px; 
+            gap: 15px; 
+            padding: 20px; 
             box-sizing: border-box;
+            /* 아래쪽 푸터와 버튼이 겹치지 않도록 여유 공간 확보 */
+            padding-bottom: 40px; 
         }
 
         .instruction {
-            font-size: 1.05rem; 
-            font-weight: 800; 
-            color: #1e293b; 
-            text-align: center;
-            line-height: 1.4;
-            margin-bottom: 5px; /* 지시문 아래 여백 */
+            font-size: 1.05rem; font-weight: 800; color: #1e293b; text-align: center;
+            line-height: 1.4; margin-top: 5px;
         }
 
         .status-container {
-            display: flex; 
-            align-items: center; 
-            justify-content: center; 
-            gap: 8px;
-            margin-bottom: 5px;
+            display: flex; align-items: center; justify-content: center; 
+            gap: 10px; margin-bottom: 5px;
         }
 
         .difficulty-badge, .timer-badge {
-            padding: 5px 15px; 
-            border-radius: 12px;
-            font-weight: 800;
-            font-size: 0.95rem;
+            padding: 6px 16px; border-radius: 12px; font-weight: 800; font-size: 0.95rem;
         }
-
         .difficulty-badge { background: white; border: 2px solid #e2e8f0; }
         .timer-badge { background: #e0f2fe; color: #0ea5e9; border: 2px solid #bae6fd; }
 
-        /* 도로 영역: 위로 붙이되 모바일에서 버튼이 밀리지 않을 적당한 높이 */
+        /* 도로 영역: 모바일 가독성을 위해 높이 유지 */
         .road-container {
             position: relative; 
             width: 100%; 
             max-width: 400px; 
-            height: 330px; /* 고정 높이로 다시 안정화 */
+            height: 330px; 
             background: #cbd5e1; 
             border-radius: 40px; 
             border: 6px solid white;
             overflow: hidden;
             box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+            z-index: 1;
         }
 
-        .road-moving-bg {
-            position: absolute; width: 100%; height: 200%; top: -100%;
-            background: repeating-linear-gradient(
-                #94a3b8, #94a3b8 48%, 
-                #f8fafc 50%, 
-                #94a3b8 52%, #94a3b8 100%
-            );
-            background-size: 100% 120px;
+        .start-overlay {
+            position: absolute; inset: 0;
+            background: rgba(30, 41, 59, 0.7); 
+            z-index: 100;
+            display: flex; align-items: center; justify-content: center;
+            border-radius: 34px;
         }
-        .road-moving-bg.active { animation: road-flow 0.5s linear infinite; }
-        @keyframes road-flow { from { transform: translateY(0); } to { transform: translateY(120px); } }
 
+        .btn-start-game {
+            padding: 15px 40px; font-size: 1.4rem; font-weight: 900;
+            background: #0ea5e9; color: white; border: none; border-radius: 50px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+            cursor: pointer;
+        }
+
+        /* 핸들 바 크기 최적화 */
         .bike-handlebar {
-            position: absolute; bottom: -10px; left: 50%; width: 260px;
-            margin-left: -130px; z-index: 5; transition: transform 0.08s linear;
+            position: absolute; bottom: -10px; left: 50%; width: 240px;
+            margin-left: -120px; z-index: 5; transition: transform 0.08s linear;
         }
 
-        /* 하단 버튼 영역: 도로 바로 아래에 위치 */
+        /* 하단 버튼 영역: 세로 스크롤 시 가장 아래에 위치 */
         .control-group {
             display: flex; 
             gap: 15px; 
             width: 100%; 
             max-width: 400px;
-            margin-top: 5px;
+            margin-top: 10px;
         }
 
         .btn-move {
             flex: 1; 
             padding: 22px 0; 
-            border-radius: 24px; 
+            border-radius: 22px; 
             border: none;
             background: white; 
             color: #1e293b; 
@@ -109,9 +107,10 @@
         }
         .btn-move:active { transform: translateY(3px); box-shadow: 0 3px 0 #e2e8f0; }
 
-        .btn-start-game {
-            padding: 15px 35px; font-size: 1.4rem; font-weight: 900;
-            background: #0ea5e9; color: white; border: none; border-radius: 50px;
+        /* 갤럭시 S26/아이폰 등 작은 화면 대응 */
+        @media (max-height: 700px) {
+            .road-container { height: 280px; }
+            .instruction { font-size: 0.95rem; }
         }
     </style>
 </head>
