@@ -14,29 +14,62 @@
             --p-blue: #3b82f6;
             --card-back: #1e293b;
         }
-        body, html { background-color: #f1f5f9; -webkit-user-select:none; user-select:none; margin: 0; padding: 0; }
+        
+        /* 1. 기본 레이아웃: 스크롤이 원활하게 작동하도록 설정 */
+        body, html { 
+            background-color: #f1f5f9; 
+            margin: 0; padding: 0; 
+            overflow-x: hidden; 
+            -webkit-user-select:none; 
+            user-select:none; 
+        }
         
         main { 
-            min-height: calc(100vh - var(--header-height, 60px) - var(--footer-height, 60px)); 
-            display: flex; flex-direction: column; align-items: center; padding: 15px; 
+            /* common.css의 높이와 동기화하되, 내용이 많으면 늘어나도록 설정 */
+            height: calc(100dvh - var(--header-height, 85px) - var(--footer-height, 70px)); 
+            display: flex; 
+            flex-direction: column; 
+            align-items: center; 
+            justify-content: flex-start; /* 상단부터 차례대로 배치 */
+            padding: 15px 20px; 
+            gap: 15px; 
+            box-sizing: border-box;
+            
+            /* 세로 스크롤 활성화 */
+            overflow-y: auto; 
+            overflow-x: hidden;
+            -webkit-overflow-scrolling: touch;
+            
+            /* [핵심] 마지막 카드 줄이 푸터에 가려지지 않도록 하단 여백 넉넉히 확보 */
+            padding-bottom: 80px; 
         }
 
-        /* [요청반영] 스토리 연결 문구 적용 */
+        /* 2. 지시문 영역: 스크롤 시 찌그러지지 않게 고정 */
         .instruction {
-            width: 100%; max-width: 480px; background: #ffffff; border: 2px solid var(--p-blue); 
-            border-radius: 15px; padding: 15px; margin-bottom: 20px; text-align: center;
-            font-weight: 700; color: #1e40af; font-size: 1rem; line-height: 1.6;
+            width: 100%; 
+            max-width: 480px; 
+            background: #ffffff; 
+            border: 2px solid var(--p-blue); 
+            border-radius: 15px; 
+            padding: 15px; 
+            text-align: center;
+            font-weight: 700; 
+            color: #1e40af; 
+            font-size: 0.95rem; 
+            line-height: 1.5;
             word-break: keep-all;
+            flex-shrink: 0; /* 크기 고정 */
         }
 
-        /* 5열 4행 그리드 */
+        /* 3. 카드 그리드 영역 */
         .card-grid {
             display: grid;
             grid-template-columns: repeat(5, 1fr);
-            gap: 10px;
+            gap: 8px;
             width: 100%;
-            max-width: 500px;
+            max-width: 480px;
             perspective: 1000px;
+            flex-shrink: 0; /* 카드가 세로로 눌리는 현상 방지 */
         }
 
         .memory-card {
@@ -45,6 +78,7 @@
             transform-style: preserve-3d;
             transition: transform 0.5s cubic-bezier(0.4, 0, 0.2, 1);
             cursor: pointer;
+            touch-action: manipulation; /* 아이폰 연타 확대 방지 */
         }
 
         .memory-card.flipped { transform: rotateY(180deg); }
@@ -53,20 +87,39 @@
         .card-face {
             position: absolute; inset: 0;
             backface-visibility: hidden;
-            display: flex; flex-direction: column; align-items: center; justify-content: center;
-            border-radius: 10px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); border: 2px solid #fff;
+            display: flex; 
+            flex-direction: column; 
+            align-items: center; 
+            justify-content: center;
+            border-radius: 8px; 
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1); 
+            border: 1.5px solid #fff;
         }
 
         .card-front { background-color: var(--card-back); }
-        .card-front::after { content: '❄️'; font-size: 1.2rem; opacity: 0.5; }
+        .card-front::after { content: '❄️'; font-size: 1rem; opacity: 0.5; }
 
         .card-back-view {
-            background-color: white; color: #1e293b;
-            transform: rotateY(180deg); border: 2px solid var(--p-blue);
+            background-color: white; 
+            color: #1e293b;
+            transform: rotateY(180deg); 
+            border: 2px solid var(--p-blue);
         }
         
-        .tool-icon { font-size: 1.5rem; margin-bottom: 5px; }
-        .tool-name { font-size: 0.75rem; font-weight: 800; letter-spacing: -0.5px; text-align: center; }
+        .tool-icon { font-size: 1.3rem; margin-bottom: 2px; }
+        .tool-name { 
+            font-size: 0.65rem; 
+            font-weight: 900; 
+            letter-spacing: -0.8px; 
+            text-align: center; 
+            line-height: 1;
+        }
+
+        /* 화면 높이가 너무 낮은 기기 대응 */
+        @media (max-height: 650px) {
+            .card-grid { gap: 5px; }
+            .instruction { font-size: 0.85rem; padding: 10px; }
+        }
     </style>
 </head>
 <body>
