@@ -9,18 +9,18 @@
     --main-color: #5076A1;
     --bg-color: #F8FAFC;
     --border-color: #3B7FB9;
-    /* 높이값 하향 조정 (기존 110px/100px -> 85px/75px) */
+    /* 헤더/푸터 높이 고정 */
     --header-height: 85px; 
     --footer-height: 70px;
 }
 
-/* [추가] 아이폰 확대 및 텍스트 선택 방지 기본 설정 */
+/* 1. 기본 레이아웃 및 아이폰 확대 방지 */
 body, html {
     margin: 0; padding: 0; height: 100vh;
     background-color: var(--bg-color);
     font-family: 'Pretendard', sans-serif;
     color: #334155; 
-    overflow: hidden;
+    overflow: hidden; /* 바깥쪽 스크롤은 막음 */
 
     /* 아이폰 더블 탭 확대 방지 */
     touch-action: manipulation;
@@ -29,32 +29,33 @@ body, html {
     user-select: none;
 }
 
-/* [추가] 입력창에서는 다시 텍스트 선택이 가능하도록 설정 */
+/* 입력창에서는 텍스트 선택 허용 */
 input, textarea {
     -webkit-user-select: text;
     user-select: text;
     touch-action: auto;
 }
 
-/* [공통] 레이아웃 최적화 */
+/* 2. [중요] 메인 스크롤 영역 최적화 */
 main {
     margin-top: var(--header-height);
-    /* [핵심 수정] min-height 대신 height를 사용하여 높이를 고정해야 내부 스크롤이 작동합니다. */
+    /* dvh를 사용하여 주소창 제외 실제 높이 계산 */
     height: calc(100dvh - var(--header-height) - var(--footer-height));
     
     display: flex;
     flex-direction: column;
     align-items: center;
-    justify-content: flex-start; /* 스크롤 시 상단 내용이 잘리지 않도록 유지 */
+    justify-content: flex-start; 
     
-    padding: 20px;
+    /* [수정] 하단 내용이 푸터에 가려지지 않게 바닥 여백을 60px로 넉넉히 줌 */
+    padding: 20px 20px 60px 20px; 
     box-sizing: border-box;
 
     /* 세로 스크롤 활성화 */
     overflow-y: auto; 
     overflow-x: hidden;
     
-    /* 모바일에서 부드러운 스크롤 */
+    /* 모바일 부드러운 스크롤 */
     -webkit-overflow-scrolling: touch;
 }
 
@@ -63,11 +64,11 @@ main::-webkit-scrollbar {
     width: 5px;
 }
 main::-webkit-scrollbar-thumb {
-    background-color: rgba(0, 0, 0, 0.05);
+    background-color: rgba(0, 0, 0, 0.1);
     border-radius: 10px;
 }
 
-/* [공통] 헤더 설정 */
+/* 3. 헤더 및 상단 요소 */
 header {
     position: fixed; top: 0; width: 100%; height: var(--header-height);
     background: white; border-bottom: 1px solid #E2E8F0;
@@ -79,14 +80,13 @@ header {
 .temp-container { width: 100%; height: 12px; background: #F1F5F9; border-radius: 6px; margin-top: 15px; overflow: hidden; }
 .temp-bar { height: 100%; background: linear-gradient(90deg, #FF4B2B, #FF416C); border-radius: 6px; transition: 1s ease-in-out; }
 
-/* [공통] 푸터 설정 및 클릭 최적화 */
+/* 4. 푸터 및 버튼 최적화 */
 footer {
     position: fixed; bottom: 0; width: 100%; height: var(--footer-height);
     background: white; border-top: 1px solid #E2E8F0;
     display: flex; justify-content: space-around; align-items: center; padding: 15px; z-index: 1000;
 }
 
-/* [수정] 모든 버튼류에 터치 최적화 적용 */
 button, 
 .hint-btn, 
 .btn-move, 
@@ -94,8 +94,8 @@ button,
 .start-btn, 
 .next-btn, 
 .opt-card {
-    touch-action: manipulation; /* 아이폰 확대 방지 핵심 */
-    -webkit-tap-highlight-color: transparent; /* 클릭 시 회색 음영 제거 */
+    touch-action: manipulation;
+    -webkit-tap-highlight-color: transparent;
     cursor: pointer;
 }
 
@@ -105,7 +105,7 @@ button,
     background: white; color: #64748B; font-weight: 800; font-size: 0.95rem;
 }
 
-/* [공통] 모달 스타일 */
+/* 5. 모달 및 오버레이 */
 .common-modal-overlay {
     display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.6);
     z-index: 3000; align-items: center; justify-content: center; padding: 20px;
@@ -124,7 +124,6 @@ button,
 }
 .lock-icon { font-size: 2rem; margin-bottom: 10px; display: block; }
 
-/* [공통] 온도계 오버레이 */
 #thermometer-overlay {
     display: none; position: fixed; inset: 0;
     background: rgba(15, 23, 42, 0.9); z-index: 9999;
@@ -148,7 +147,7 @@ button,
     margin-top: -30px; border: 5px solid #ffffff; z-index: 10000; box-shadow: 0 5px 20px rgba(0, 0, 0, 0.3);
 }
 
-/* [공통] 지시문 박스 스타일 */
+/* 6. 공통 텍스트 박스 */
 .mission-guide-box {
     width: 100%; max-width: 320px; background: #eff6ff; border: 1px solid #bfdbfe;
     border-radius: 12px; padding: 12px 15px; margin-bottom: 20px; text-align: center;
