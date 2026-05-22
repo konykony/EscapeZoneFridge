@@ -11,43 +11,97 @@
 
     <style>
         * { box-sizing: border-box !important; }
-        :root { --p-blue: #1d4ed8; --bg-gray: #f4f7fa; }
-        
-        body, html { 
-            background-color: var(--bg-gray); height: 100%; margin:0; padding:0; 
-            overflow: hidden; -webkit-user-select:none; user-select:none; 
+        :root { 
+            --p-blue: #1d4ed8; 
+            --bg-gray: #f4f7fa; 
         }
         
-        #wrap { display: flex; flex-direction: column; height: 100vh; width: 100%; }
+        /* 1. 전체 레이아웃: 스크롤이 원활하게 작동하도록 설정 */
+        body, html { 
+            background-color: var(--bg-gray); 
+            margin: 0; padding: 0; 
+            height: 100%;
+            overflow-x: hidden; 
+            -webkit-user-select:none; 
+            user-select:none; 
+        }
+        
+        #wrap { 
+            display: flex; 
+            flex-direction: column; 
+            height: 100%; 
+            width: 100%; 
+        }
         
         main { 
-            display: block; padding: 95px 20px 10px; 
-            max-width: 500px; margin: 0 auto; width: 100%;
-            height: calc(100vh - 60px); overflow: hidden; 
+            /* [중요] common.css의 높이와 동기화하여 내부 스크롤 활성화 */
+            height: calc(100dvh - var(--header-height, 85px) - var(--footer-height, 70px)); 
+            display: flex; 
+            flex-direction: column; 
+            align-items: center; 
+            justify-content: flex-start; 
+            padding: 15px 20px; 
+            gap: 15px; 
+            box-sizing: border-box;
+            
+            /* 세로 스크롤 설정 */
+            overflow-y: auto; 
+            overflow-x: hidden;
+            -webkit-overflow-scrolling: touch;
+            
+            /* [핵심] 확인 버튼이 푸터에 가려지지 않도록 하단 여백 넉넉히 확보 */
+            padding-bottom: 80px; 
+            
+            max-width: 500px; 
+            margin: 0 auto; 
+            width: 100%;
         }
 
-        
+        /* 2. 지시문 영역 슬림화 */
+        .instruction {
+            font-size: 1rem;
+            font-weight: 800;
+            color: #334155;
+            text-align: center;
+            margin-bottom: 5px;
+            line-height: 1.4;
+            flex-shrink: 0; /* 찌그러짐 방지 */
+        }
 
-        /* 현재 작업 단계 창 */
+        /* 3. 현재 작업 단계 창 */
         .action-canvas {
-            width: 100%; height: 105px; background: #ffffff; border-radius: 20px; 
-            position: relative; border: 2px solid #e2e8f0; display: flex; 
-            flex-direction: column; align-items: center; justify-content: center; 
-            margin-bottom: 15px; overflow: hidden;
+            width: 100%; 
+            height: 100px; 
+            background: #ffffff; 
+            border-radius: 20px; 
+            position: relative; 
+            border: 2px solid #e2e8f0; 
+            display: flex; 
+            flex-direction: column; 
+            align-items: center; 
+            justify-content: center; 
+            margin-bottom: 5px; 
+            overflow: hidden;
+            flex-shrink: 0;
         }
         .canvas-bg-display { text-align: center; pointer-events: none; }
         .canvas-bg-display small { display: block; font-size: 0.75rem; color: #94a3b8; font-weight: 800; }
-        #bg-count-box { font-size: 3rem; font-weight: 900; color: #cbd5e1; line-height: 1; }
-        #bg-count-box span { font-size: 1.5rem; color: #cbd5e1; font-weight: 800; }
+        #bg-count-box { font-size: 2.8rem; font-weight: 900; color: #cbd5e1; line-height: 1; }
+        #bg-count-box span { font-size: 1.4rem; color: #cbd5e1; font-weight: 800; }
 
-        /* 도구함 영역 - 크기 및 간격 최적화 */
+        /* 4. 도구함 영역 */
         .tool-container {
-            width: 100%; background: #ffffff; border-radius: 20px; 
-            border: 2px solid #e2e8f0; padding: 12px; margin-bottom: 15px;
+            width: 100%; 
+            background: #ffffff; 
+            border-radius: 20px; 
+            border: 2px solid #e2e8f0; 
+            padding: 12px; 
+            margin-bottom: 5px;
+            flex-shrink: 0;
         }
         .tool-header {
-            font-size: 0.9rem; font-weight: 800; color: #475569; 
-            margin-bottom: 12px; display: flex; align-items: center; padding-left: 5px;
+            font-size: 0.85rem; font-weight: 800; color: #475569; 
+            margin-bottom: 10px; display: flex; align-items: center; padding-left: 5px;
         }
         .tool-header::before {
             content: ''; display: inline-block; width: 4px; height: 14px; 
@@ -55,27 +109,39 @@
         }
         
         .tool-grid { 
-            display: grid; grid-template-columns: repeat(5, 1fr); 
-            gap: 6px; width: 100%; 
+            display: grid; 
+            grid-template-columns: repeat(5, 1fr); 
+            gap: 6px; 
+            width: 100%; 
         }
 
         .tool-btn {
             background: #fff; border-radius: 12px; padding: 10px 0; text-align: center;
             border: 1.5px solid #f1f5f9; cursor: pointer; position: relative;
             box-shadow: 0 2px 4px rgba(0,0,0,0.02);
-            touch-action: manipulation; -webkit-tap-highlight-color: transparent;
+            touch-action: manipulation; /* 아이폰 연타 확대 방지 */
+            -webkit-tap-highlight-color: transparent;
         }
         .tool-btn:active { background: #f8fafc; border-color: #3b82f6; transform: scale(0.95); }
         
-        .tool-btn span { font-size: 1.8rem; display: block; pointer-events: none; margin-bottom: 2px; }
-        .tool-btn b { font-size: 0.75rem; color: #334155; display: block; font-weight: 800; pointer-events: none; white-space: nowrap; }
+        .tool-btn span { font-size: 1.6rem; display: block; pointer-events: none; margin-bottom: 2px; }
+        .tool-btn b { font-size: 0.7rem; color: #334155; display: block; font-weight: 800; pointer-events: none; white-space: nowrap; }
 
-        /* 하단 버튼 - 플랫 디자인 및 그림자 제거 */
-        .btn-row { display: grid; grid-template-columns: 1fr 2.5fr; gap: 12px; width: 100%; height: 52px; }
+        /* 5. 하단 액션 버튼 영역 */
+        .btn-row { 
+            display: grid; 
+            grid-template-columns: 1fr 2fr; 
+            gap: 12px; 
+            width: 100%; 
+            height: 54px; 
+            flex-shrink: 0; /* 버튼이 얇아지지 않게 고정 */
+        }
         .btn-game { 
             height: 100%; border-radius: 15px; border: none; 
             font-weight: 900; font-size: 1.1rem; color: #fff;
             box-shadow: none !important; transition: all 0.1s;
+            cursor: pointer;
+            touch-action: manipulation;
         }
         .btn-reset { background: #94a3b8; }
         .btn-confirm { background: var(--p-blue); }
