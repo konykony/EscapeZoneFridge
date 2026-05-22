@@ -12,14 +12,14 @@
     <style>
         * { box-sizing: border-box !important; }
         body, html { 
-            background-color: #000; /* 영상 집중도를 위해 배경 검정 */
+            background-color: #000; 
             height: 100%; margin: 0; padding: 0; 
             overflow: hidden; font-family: 'Pretendard', sans-serif;
         }
         
-        #wrap { position: relative; width: 100%; height: 100vh; }
+        #wrap { position: relative; width: 100%; height: 100dvh; }
 
-        /* [핵심] 전체 화면 비디오 스타일 */
+        /* 전체 화면 비디오 스타일 */
         #video-container {
             position: absolute; top: 0; left: 0; width: 100%; height: 100%;
             background: #000; display: flex; align-items: center; justify-content: center;
@@ -27,66 +27,67 @@
         
         #endingVideo {
             width: 100%; height: 100%;
-            object-fit: cover; /* 화면에 꽉 차게 채움 (비율에 따라 약간 잘릴 수 있음) */
-            /* object-fit: contain; 비율 유지가 중요하다면 이걸로 변경하세요 */
+            object-fit: cover; /* 모바일 화면에 바짝 밀착 */
         }
 
-        /* 영상 재생 중 안내 (선택 사항) */
+        /* 영상 하단 안내 메시지 */
         #vdo-msg {
-            position: absolute; bottom: 20px; left: 0; width: 100%;
-            text-align: center; color: rgba(255,255,255,0.6);
-            font-size: 0.85rem; font-weight: 600; z-index: 10;
+            position: absolute; bottom: 30px; left: 0; width: 100%;
+            text-align: center; color: rgba(255,255,255,0.7);
+            font-size: 0.9rem; font-weight: 700; z-index: 10;
             pointer-events: none;
+            text-shadow: 0 0 10px rgba(0,0,0,0.8);
         }
 
-        /* [핵심] 영상 종료 후 나타날 버튼 레이어 */
+        /* 미션 성공 오버레이 */
         #action-area { 
             display: none; position: absolute; top: 0; left: 0;
             width: 100%; height: 100%;
-            background: rgba(0, 0, 0, 0.6); /* 버튼이 잘 보이도록 배경 어둡게 */
-            z-index: 20; display: flex; flex-direction: column;
+            background: rgba(0, 0, 0, 0.7); 
+            z-index: 20; flex-direction: column;
             align-items: center; justify-content: center;
             padding: 20px;
         }
 
         .success-msg {
-            color: #fff; text-align: center; margin-bottom: 30px;
-            animation: fadeInUp 0.8s ease-out;
+            color: #fff; text-align: center; margin-bottom: 40px;
         }
-        .success-msg h1 { font-size: 2.2rem; font-weight: 900; margin-bottom: 10px; }
-        .success-msg p { font-size: 1.1rem; opacity: 0.9; font-weight: 600; }
+        .success-msg h1 { font-size: 2.4rem; font-weight: 900; margin-bottom: 15px; color: #60a5fa; }
+        .success-msg p { font-size: 1.15rem; opacity: 0.95; font-weight: 600; line-height: 1.6; }
 
         .btn-next { 
-            background: #1d4ed8; color: #fff; border: none;
-            width: 100%; max-width: 320px; height: 64px;
-            border-radius: 20px; font-size: 1.3rem; font-weight: 900;
-            box-shadow: 0 6px 0 #172554; transition: all 0.1s;
-            animation: fadeInUp 1s ease-out;
+            background: #2563eb; color: #fff; border: none;
+            width: 100%; max-width: 320px; height: 68px;
+            border-radius: 20px; font-size: 1.4rem; font-weight: 900;
+            box-shadow: 0 6px 0 #1e3a8a; transition: all 0.1s;
+            cursor: pointer;
+            touch-action: manipulation;
         }
-        .btn-next:active { transform: translateY(3px); box-shadow: 0 3px 0 #172554; }
+        .btn-next:active { transform: translateY(3px); box-shadow: 0 3px 0 #1e3a8a; }
 
         @keyframes fadeInUp {
             from { opacity: 0; transform: translateY(20px); }
             to { opacity: 1; transform: translateY(0); }
         }
+        .animate-up { animation: fadeInUp 0.8s ease-out forwards; }
     </style>
 </head>
 <body>
     <div id="wrap">
         <div id="video-container">
-            <video id="endingVideo" playsinline muted>
+            <video id="endingVideo" playsinline muted webkit-playsinline preload="auto">
                 <source src="../img/ending_202605192007.mp4" type="video/mp4">
             </video>
         </div>
 
-        <div id="vdo-msg">영상이 재생 중입니다...</div>
+        <div id="vdo-msg">영상이 시작되지 않으면 화면을 터치해 주세요.</div>
 
-        <div id="action-area" style="display: none;">
-            <div class="success-msg">
-                <h1>MISSION CLEAR!</h1>
-                <p>축하합니다! 방탈출을 성공했습니다.</p>
+        <div id="action-area">
+            <div class="success-msg animate-up">
+                <h1>MISSION COMPLETE!</h1>
+                <p>축하합니다, 코니님!<br>북극곰에게 냉장고를 무사히 배달했습니다.</p>
             </div>
-            <button class="btn-next" onclick="goNext()">다음</button>
+            <button class="btn-next animate-up" onclick="goNext()">나의 기록 확인하기</button>
         </div>
     </div>
 
@@ -96,30 +97,46 @@
         const vdo = document.getElementById('endingVideo');
 
         $(document).ready(() => {
-            // 1. 영상 재생 시작
-            vdo.play().catch(() => {
-                $('#vdo-msg').text("화면을 터치하면 영상이 시작됩니다.");
-                $(document).one('click', () => {
-                    vdo.play();
+            // 1. 영상 재생 시도
+            const playPromise = vdo.play();
+
+            if (playPromise !== undefined) {
+                playPromise.then(() => {
+                    // 자동 재생 성공
                     $('#vdo-msg').text("영상이 재생 중입니다...");
+                    setTimeout(() => $('#vdo-msg').fadeOut(1000), 3000);
+                }).catch(() => {
+                    // 자동 재생 차단 (사파리 등)
+                    $('#vdo-msg').css('color', '#60a5fa').text("화면을 터치하면 영상이 시작됩니다.");
+                    $(document).one('click touchstart', () => {
+                        vdo.play();
+                        $('#vdo-msg').text("영상이 재생 중입니다...");
+                        setTimeout(() => $('#vdo-msg').fadeOut(1000), 2000);
+                    });
                 });
-            });
+            }
 
             // 2. 영상 종료 시 이벤트
             vdo.addEventListener('ended', () => {
                 $('#vdo-msg').hide();
-                $('#action-area').css('display', 'flex').hide().fadeIn(1000);
+                $('#action-area').css('display', 'flex').hide().fadeIn(1200);
             });
         });
 
         function goNext() {
-            const isTestMode = new URLSearchParams(window.location.search).get('type') === 'test';
+            const urlParams = new URLSearchParams(window.location.search);
+            const isTestMode = urlParams.get('type') === 'test';
+            
             if (isTestMode) {
-                window.location.href = 'test.html'; // 테스트 중이면 기록 안 남기고 복귀
+                // 테스트 모드 시 파라미터 유지하며 이동
+                window.location.href = 'record.html?type=test';
             } else {
-                // [핵심] 완료 시간 쿠키 저장 후 기록 페이지로!
-                SetFridgeCookie('fridge_end_time', new Date().getTime());
-                GetFridgeCookie('fridge_status', 'finished'); 
+                // [수정] 완료 시점 기록 및 상태 업데이트
+                const endTime = new Date().getTime();
+                if (typeof SetFridgeCookie === "function") {
+                    SetFridgeCookie('fridge_end_time', endTime, 24);
+                    SetFridgeCookie('fridge_status', 'finished', 24);
+                }
                 window.location.href = 'record.html';
             }
         }

@@ -2,93 +2,40 @@
 <html lang="ko">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>북극곰 프로젝트 - 스토리</title>
     
-    <!-- Bootstrap 5 CSS -->
     <link rel="stylesheet" href="../lib/bootstrap-5.3.8-dist/css/bootstrap.min.css" />
     <link rel="stylesheet" href="../lib/Pretendard-1.3.9/web/static/pretendard.css" />
     <link rel="stylesheet" href="../css/common.css">
     <style>
-        :root {
-            --main-color: #5076A1;
-            --bg-color: #F8FAFC;
-        }
+        :root { --main-color: #5076A1; --bg-color: #F8FAFC; }
+        body, html { margin: 0; padding: 0; height: 100%; background-color: var(--bg-color); font-family: 'Pretendard', sans-serif; overflow-x: hidden; }
 
-        body, html {
-            margin: 0; padding: 0; height: 100%;
-            background-color: var(--bg-color);
-            font-family: 'Pretendard', sans-serif;
-            overflow-x: hidden;
-        }
-
-        /* [1] 영상 영역 동일 */
         #video-overlay {
-            position: fixed; top: 0; left: 0;
-            width: 100%; height: 100%;
-            background: #000; z-index: 2000;
-            display: flex; align-items: center; justify-content: center;
-            cursor: pointer;
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: #000; z-index: 2000; display: flex; align-items: center; justify-content: center; cursor: pointer;
         }
+        /* 사파리 기본 컨트롤 숨김 */
         video::-webkit-media-controls { display: none !important; }
-        video { width: 100%; height: 100%; object-fit: cover; }
+        video { width: 100%; height: 100%; object-fit: cover; background: #000; }
 
         .skip-notice {
-            position: absolute; bottom: 30px; color: rgba(255,255,255,0.5);
-            font-size: 0.8rem; pointer-events: none;
-            transition: color 0.5s;
+            position: absolute; bottom: 30px; color: rgba(255,255,255,0.7);
+            font-size: 0.85rem; pointer-events: none; transition: color 0.5s; font-weight: 600;
         }
 
-        /* [2] 콘텐츠 영역: 상단 정렬로 변경 */
         #story-content {
-            display: none;
-            flex-direction: column;
-            align-items: center;
-            /* [수정] 위쪽부터 자연스럽게 쌓이도록 조정 */
-            justify-content: flex-start; 
-            padding: 40px 25px;
-            /* [수정] 고정 높이 대신 최소 높이 제거하여 버튼을 위로 당김 */
-            min-height: auto; 
-            width: 100%;
-            box-sizing: border-box;
+            display: none; flex-direction: column; align-items: center; justify-content: flex-start; 
+            padding: 40px 25px; min-height: auto; width: 100%; box-sizing: border-box;
         }
 
-        /* 지시문 스타일 (상단 밀착용) */
-        .instruction {
-            font-size: 1.1rem;
-            font-weight: 800;
-            color: #334155;
-            text-align: center;
-            margin-top: 10px;
-            margin-bottom: 25px;
-            line-height: 1.5;
-            word-break: keep-all;
-        }
+        .instruction { font-size: 1.1rem; font-weight: 800; color: #334155; text-align: center; margin-top: 10px; margin-bottom: 25px; line-height: 1.5; word-break: keep-all; }
+        .cipher-img { width: 100%; max-width: 450px; border-radius: 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.08); margin-bottom: 30px; }
 
-        .cipher-img {
-            width: 100%;
-            max-width: 450px;
-            border-radius: 20px;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.08);
-            margin-bottom: 30px; /* 버튼과의 간격 */
-        }
-
-        /* [3] 다음 버튼: 위로 끌어올림 */
         .next-btn {
-            width: 100%;
-            max-width: 300px;
-            padding: 18px;
-            border-radius: 20px;
-            background-color: var(--main-color);
-            color: white;
-            border: none;
-            font-weight: 900;
-            font-size: 1.2rem;
-            box-shadow: 0 6px 15px rgba(80,118,161,0.2);
-            transition: 0.2s;
-            /* [수정] auto 대신 고정 마진 사용 */
-            margin-top: 10px; 
-            margin-bottom: 50px;
+            width: 100%; max-width: 300px; padding: 18px; border-radius: 20px; background-color: var(--main-color);
+            color: white; border: none; font-weight: 900; font-size: 1.2rem; box-shadow: 0 6px 15px rgba(80,118,161,0.2); transition: 0.2s; margin-top: 10px; margin-bottom: 50px;
         }
         .next-btn:active { transform: scale(0.97); background-color: #3F5E81; }
     </style>
@@ -96,11 +43,10 @@
 <body>
 
     <div id="video-overlay" onclick="skipVideo()">
-        <video id="story-video" autoplay muted playsinline>
+        <video id="story-video" autoplay muted playsinline webkit-playsinline preload="auto">
             <source src="../img/AZyuQYOPhKkL5Z6Z7IZpXg-AZyuQYOPbSJB1wqyNcHqtw.mp4" type="video/mp4">
-            브라우저가 영상을 지원하지 않습니다.
         </video>
-        <div class="skip-notice">영상이 나오지 않으면 화면을 클릭하세요</div>
+        <div class="skip-notice" id="notice-text">화면을 클릭하면 시작합니다</div>
     </div>
 
     <div id="story-content" class="container">
@@ -108,13 +54,10 @@
             "이 기호들... 도서관에서 본 적이 있어!"<br>
             확인을 위해 지금 당장 도서관으로 가야 합니다.
         </div>
-
-        <img src="../img/opening.png" class="cipher-img" alt="Dancing Men Cipher">
-
+        <img src="../img/opening.png" class="cipher-img" alt="Cipher">
         <button id="go-next" class="next-btn">도서관으로 이동하기</button>
     </div>
 
-    <!-- jQuery -->
     <script src="../lib/jquery-3.6.0.min.js"></script>
     <script src="../js/common.js"></script>
     <script>
@@ -129,75 +72,65 @@
 
         function skipVideo() {
             if (isSkipped) return;
-            isSkipped = true;
-            
-            // 영상 정지 처리
             const video = document.getElementById('story-video');
-            if(video) video.pause();
+            
+            // [사파리 대응] 클릭 시점에 비디오가 멈춰있다면 강제 재생
+            if (video.paused) {
+                video.play().catch(e => console.log("Play failed:", e));
+                $('#notice-text').text('영상이 재생됩니다 (한 번 더 클릭 시 건너뛰기)');
+                return; // 첫 클릭은 재생만 시키고 종료
+            }
 
-            // 전환 효과 개선: Overlay를 날리고 Content를 부드럽게 올림
+            isSkipped = true;
+            video.pause();
             $('#video-overlay').fadeOut(500);
             $('#story-content').delay(200).fadeIn(800).css('display', 'flex');
         }
 
         $(document).ready(function() {
-            // 1. [최우선] URL 파라미터에서 테스트 모드 여부 판별
             const urlParams = new URLSearchParams(window.location.search);
             const isTestMode = (urlParams.get('type') || "").toLowerCase() === 'test';
 
-            // 2. common.js 초기화 실행 (내부에서 테스트 모드에 따른 가상 데이터 세팅)
-            if (typeof initializeUI === "function") {
-                initializeUI(0); 
-            }
+            if (typeof initializeUI === "function") initializeUI(0); 
 
-            // 3. [보안 체크 분기] 테스트 모드일 때는 쿠키 검증을 건너뜁니다.
             if (!isTestMode) {
-                // 일반 모드일 때만 실제 쿠키 'fridge_name'이 있는지 확인
                 const userName = typeof GetFridgeCookie === "function" ? GetFridgeCookie('fridge_name') : null;
-                
-                if (!userName) {
-                    console.error("[Access Denied] 사용자 정보가 확인되지 않아 error.html로 리다이렉트합니다.");
-                    window.location.href = 'error.html'; 
-                    return; // 이후 로직 실행 방지
-                }
-            } else {
-                console.log("[TEST MODE] 테스트 세션을 감지했습니다. 쿠키 체크를 생략합니다.");
+                if (!userName) { window.location.href = 'error.html'; return; }
             }
 
-            // 4. 영상 관련 로직
             const video = document.getElementById('story-video');
-            
-            // 영상 재생 완료 시 자동으로 skipVideo 함수 호출
-            if (video) {
-                video.onended = function() {
-                    skipVideo();
-                };
+
+            // [핵심] 사파리 자동재생 시도 및 실패 처리
+            let playPromise = video.play();
+            if (playPromise !== undefined) {
+                playPromise.catch(error => {
+                    // 자동 재생 차단됨 -> 안내 문구 변경
+                    $('#notice-text').css('color', '#fff').text('화면을 클릭하면 시작합니다');
+                });
             }
 
-            // 5초 후 건너뛰기 안내 문구 활성화
+            if (video) {
+                video.onended = function() { skipVideo(); };
+            }
+
+            // 5초 후 안내 문구 업데이트
             setTimeout(() => {
                 if (!isSkipped) {
-                    $('.skip-notice')
-                        .css('color', '#ffffff')
-                        .text('화면을 클릭하여 건너뛰기');
+                    $('#notice-text').css('color', '#ffffff').text('화면을 클릭하여 건너뛰기');
                 }
             }, 5000);
 
-            // 5. [다음 버튼] 클릭 이벤트 - 테스트 파라미터 유지 로직 포함
             $('#go-next').click(function() {
                 const startTime = Date.now();
-                // 다음 페이지로 이동할 때 테스트 모드라면 파라미터를 붙여줍니다.
                 const nextUrl = isTestMode ? 'question_1.html?type=test' : 'question_1.html';
 
                 if (!isTestMode) {
-                    // 일반 모드일 때만 쿠키 정식 등록
                     if (typeof SetFridgeCookie === "function") {
                         SetFridgeCookie('fridge_start_time', startTime, 24);
                         SetFridgeCookie('fridge_idx', 1, 24);
                         SetFridgeCookie('fridge_status', 'playing', 24);
                     }
                 }
-                
                 location.href = nextUrl;
             });
         });
