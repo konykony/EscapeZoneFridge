@@ -15,29 +15,38 @@
             --h-yellow: #fef08a; 
         }
 
-        /* 1. 전체 레이아웃: 상단 밀착형 설정 */
+        /* 1. 전체 레이아웃: 아이폰/갤럭시 S26 세로 대응 */
         body, html { 
             background-color: #f1f5f9; 
             margin: 0; padding: 0; 
+            /* 가로 스크롤은 막고 세로는 시스템에 맡깁니다 */
             overflow-x: hidden; 
             -webkit-user-select:none; 
             user-select:none; 
         }
         
         main { 
-            /* 헤더/푸터 제외 영역 */
-            height: calc(100vh - var(--header-height, 60px) - var(--footer-height, 60px)); 
+            /* [중요] common.css의 높이값과 동기화하여 내부 스크롤 활성화 */
+            height: calc(100dvh - var(--header-height, 85px) - var(--footer-height, 70px)); 
             display: flex; 
             flex-direction: column; 
             align-items: center; 
-            /* [핵심] center 대신 flex-start를 써서 위로 바짝 붙임 */
+            /* 상단 밀착 정렬 */
             justify-content: flex-start; 
             padding: 15px 20px; 
-            gap: 12px; /* 요소 간 간격 조절 */
+            gap: 12px; 
             box-sizing: border-box;
+            
+            /* 세로 스크롤 설정 */
+            overflow-y: auto; 
+            overflow-x: hidden;
+            -webkit-overflow-scrolling: touch; /* iOS 부드러운 스크롤 */
+            
+            /* [복구] 하단 선택지가 푸터 바에 가려지지 않도록 충분한 여백 추가 */
+            padding-bottom: 60px; 
         }
 
-        /* 2. 상단 지시문 슬림화 */
+        /* 2. 상단 지시문: 슬림화하여 공간 확보 */
         .instruction {
             width: 100%; 
             max-width: 420px; 
@@ -52,19 +61,21 @@
             line-height: 1.4; 
             box-shadow: 0 4px 10px rgba(59, 130, 246, 0.1);
             margin: 0;
+            flex-shrink: 0; /* 스크롤 시 찌그러짐 방지 */
         }
 
-        /* 3. 프리뷰 카드 영역 (높이 조절로 버튼 위치 확보) */
+        /* 3. 프리뷰 카드 영역: 높이를 줄여 선택지 노출 확대 */
         .preview-card {
             width: 100%; 
             max-width: 380px; 
-            height: 280px; /* 기존 320px에서 축소하여 위로 올림 */
+            height: 250px; /* 280px에서 250px로 축소 */
             background: #ffffff; 
             border-radius: 35px;
             position: relative; 
             box-shadow: 0 10px 30px rgba(0,0,0,0.05); 
             border: 2px solid #e2e8f0;
             overflow: hidden;
+            flex-shrink: 0; /* 스크롤 시 찌그러짐 방지 */
         }
 
         #game-overlay {
@@ -74,10 +85,9 @@
         
         .status-msg { 
             width: 100%; text-align: center; font-weight: 800; font-size: 1.05rem; line-height: 1.4;
-            position: absolute; top: 20px; left: 0; z-index: 20; padding: 0 20px;
+            position: absolute; top: 18px; left: 0; z-index: 20; padding: 0 20px;
         }
         #timer-text { color: #f43f5e; font-weight: 900; font-size: 1.2rem; }
-
         .count-text { font-size: 5rem; font-weight: 900; color: var(--p-blue); z-index: 30; }
 
         /* 4. 깃발 드로잉 요소 */
@@ -100,7 +110,6 @@
 
         .highlight { background-color: #fef08a !important; border: 4px solid #facc15 !important; animation: pulse-active 0.6s infinite alternate; z-index: 100 !important; }
         @keyframes pulse-active { from { opacity: 1; } to { opacity: 0.6; } }
-        
         .gray-out { background-color: #e2e8f0 !important; border-color: #cbd5e1 !important; }
 
         /* 5. 컨트롤 및 조립 영역 */
@@ -109,6 +118,7 @@
             max-width: 450px; 
             text-align: center; 
             margin-top: 5px;
+            flex-grow: 1; /* 남은 공간을 차지하여 스크롤 유도 */
         }
 
         .btn-game { 
@@ -121,16 +131,27 @@
             font-size: 1.3rem; 
             cursor: pointer; 
             box-shadow: 0 6px 15px rgba(14,165,233,0.3); 
+            touch-action: manipulation;
         }
 
         .category-group { display: none; }
         .category-group.active { display: block; }
         .category-title { font-size: 1.05rem; font-weight: 800; color: #1e293b; margin-bottom: 12px; }
         
-        .option-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
-        .opt-card { background: white; border-radius: 15px; padding: 10px 5px; text-align: center; cursor: pointer; box-shadow: 0 4px 10px rgba(0,0,0,0.04); border: 2.5px solid transparent; }
+        .option-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; padding: 5px; }
+        .opt-card { 
+            background: white; border-radius: 15px; padding: 12px 5px; 
+            text-align: center; cursor: pointer; 
+            box-shadow: 0 4px 10px rgba(0,0,0,0.04); 
+            border: 2.5px solid transparent; 
+            touch-action: manipulation; /* 아이폰 확대 방지 */
+        }
         .color-chip { width: 36px; height: 36px; margin: 0 auto 8px; border-radius: 10px; border: 1px solid rgba(0,0,0,0.1); }
         .label { font-size: 0.85rem; font-weight: 800; }
+
+        /* 스크롤바 커스텀 */
+        main::-webkit-scrollbar { width: 4px; }
+        main::-webkit-scrollbar-thumb { background: rgba(0,0,0,0.1); border-radius: 10px; }
     </style>
 </head>
 <body>
