@@ -11,98 +11,71 @@
     <style>
         :root { --p-blue: #5076A1; --text-dark: #1e293b; --bg-gray: #f8fafc; }
         
-        body, html { 
-            margin: 0; padding: 0; height: 100%; 
-            background-color: var(--bg-gray); 
-            font-family: 'Pretendard', sans-serif;
-            color: var(--text-dark);
-            overflow: hidden;
-        }
+        body, html { margin: 0; padding: 0; height: 100%; background-color: var(--bg-gray); font-family: 'Pretendard', sans-serif; overflow: hidden; }
 
-        /* 세로 스크롤 영역 */
-        #wrap {
-            display: flex;
-            flex-direction: column;
-            height: 100dvh;
-            padding: 40px 25px;
-            box-sizing: border-box;
-            overflow-y: auto;
-            -webkit-overflow-scrolling: touch;
-        }
+        #wrap { display: flex; flex-direction: column; height: 100dvh; box-sizing: border-box; }
 
+        /* 비디오 영역 (전체 화면 재생) */
+        #video-container { width: 100%; height: 100dvh; background: #000; display: flex; align-items: center; justify-content: center; position: absolute; top: 0; left: 0; z-index: 10; }
+        #story-video { width: 100%; height: 100%; object-fit: cover; }
+
+        /* 스토리 영역 (비디오 후 등장) */
         .story-container {
-            width: 100%;
-            max-width: 420px;
-            margin: 0 auto;
+            width: 100%; max-width: 420px; margin: 0 auto; padding: 40px 25px; 
+            display: none; /* 비디오 재생 후 JS로 block 처리 */
             animation: fadeIn 0.6s ease-in-out;
         }
 
-        .story-container p {
-            font-size: 1.15rem; 
-            font-weight: 500; 
-            color: #475569;
-            margin-bottom: 25px; /* 문단 간격 유지 */
-            line-height: 1.8; 
-            text-align: left;
-            word-break: keep-all;
-        }
+        .story-container p { font-size: 1.15rem; font-weight: 500; color: #475569; margin-bottom: 25px; line-height: 1.8; text-align: left; word-break: keep-all; }
+        .story-container strong { color: #1e293b; font-weight: 800; box-shadow: inset 0 -8px 0 #e2e8f0; }
 
-        .story-container strong { 
-            color: #1e293b; 
-            font-weight: 800; 
-            box-shadow: inset 0 -8px 0 #e2e8f0;
-        }
-
-        /* 버튼 영역: 안내 박스 제거 후 텍스트와 적절한 거리 유지 */
-        .btn-area {
-            width: 100%;
-            display: flex;
-            justify-content: center;
-            padding: 20px 0 40px 0; /* 상단 여백 조절 */
-            margin-top: 20px; 
-        }
-
+        .btn-area { width: 100%; display: flex; justify-content: center; padding: 20px 0 40px 0; margin-top: 20px; }
         .btn-next {
-            width: 100%;
-            max-width: 320px;
-            height: 64px;
-            background-color: var(--p-blue); 
-            color: #fff;
-            border: none; 
-            border-radius: 18px;
-            font-size: 1.25rem; 
-            font-weight: 900;
+            width: 100%; max-width: 320px; height: 64px;
+            background-color: var(--p-blue); color: #fff;
+            border: none; border-radius: 18px;
+            font-size: 1.25rem; font-weight: 900;
             box-shadow: 0 10px 25px rgba(80, 118, 161, 0.2);
-            cursor: pointer;
-            transition: 0.2s;
+            cursor: pointer; transition: 0.2s;
         }
-        
-        .btn-next:active { transform: scale(0.97); }
 
-        @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(10px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
     </style>
 </head>
 <body>
 
+    <div id="video-container">
+        <video id="story-video" playsinline autoplay muted>
+            <source src="../img/AZyuQYOPhKkL5Z6Z7IZpXg-AZyuQYOPbSJB1wqyNcHqtw.mp4" type="video/mp4">
+        </video>
+    </div>
+
     <div id="wrap">
-        <div class="story-container">
+        <div class="story-container" id="story-content">
             <p>편지 앞면에는 도무지 읽을 수 없는 복잡한 글자들이 빼곡히 적혀 있습니다.</p>
             <p>그런데 뒷면을 돌려보니 누군가 남긴 듯한 <strong>발자국</strong>이 남아 있습니다. 이 모양, 분명 어디선가 본 기억이 납니다.</p>
             <p>도서관 게시판 한구석에 붙어 있던 그 <strong>오래된 포스터</strong>에 같은 그림이 있었습니다.</p>
             <p>지금 당장 도서관으로 가서 메시지에 담긴 비밀을 풀어야 합니다.</p>
-        </div>
-
-        <div class="btn-area">
-            <button class="btn-next" onclick="goToNext()">도서관으로 이동하기</button>
+            
+            <div class="btn-area">
+                <button class="btn-next" onclick="goToNext()">도서관으로 이동하기</button>
+            </div>
         </div>
     </div>
 
     <script src="../lib/jquery-3.6.0.min.js"></script>
     <script src="../js/common.js"></script>
     <script>
+        const video = document.getElementById('story-video');
+        const story = document.getElementById('story-content');
+        const vContainer = document.getElementById('video-container');
+
+        // 비디오 재생 종료 시 호출
+        video.onended = () => {
+            vContainer.style.display = 'none'; // 영상 제거
+            story.style.display = 'block';    // 스토리 등장
+        };
+
         function goToNext() {
             if (typeof SetFridgeCookie === "function") {
                 SetFridgeCookie('fridge_idx', 1, 24);
