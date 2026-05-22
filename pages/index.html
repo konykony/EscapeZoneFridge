@@ -10,15 +10,14 @@
     
     <style>
         :root {
-            --main-color: #5076A1; /* 스틸 블루 */
-            --bg-color: #F8FAFC;   /* 부드러운 배경색 */
+            --main-color: #5076A1;
+            --bg-color: #F8FAFC;
         }
 
-        /* 1. 기본 레이아웃: 상단 정렬 및 아이폰 대응 */
         body, html { 
             background-color: var(--bg-color); 
             font-family: 'Pretendard', sans-serif; 
-            height: 100dvh; /* Dynamic Viewport 적용 */
+            height: 100dvh; 
             margin: 0; padding: 0;
             overflow: hidden; 
             color: #334155;
@@ -36,7 +35,6 @@
             box-sizing: border-box; 
         }
         
-        /* 2. 표지 이미지: 버튼 공간 확보를 위한 가변 높이 */
         .image-cover { 
             max-height: 45vh; 
             width: auto; 
@@ -48,7 +46,6 @@
             flex-shrink: 0;
         }
 
-        /* 3. 입력 영역 */
         .input-group-custom { 
             display: none; 
             width: 100%;
@@ -69,12 +66,11 @@
             box-sizing: border-box;
             outline: none;
             transition: border-color 0.2s;
-            -webkit-user-select: text; /* 입력창은 선택 가능하게 */
+            -webkit-user-select: text;
             user-select: text;
         }
         .user-input:focus { border-color: var(--main-color); }
 
-        /* 4. 버튼 그룹 레이아웃 */
         .btn-group-custom {
             display: flex;
             width: 100%;
@@ -84,7 +80,7 @@
         }
 
         .start-btn { 
-            flex: 3; /* 주 버튼 비중 확대 */
+            flex: 3; 
             border-radius: 18px; 
             font-weight: 900; 
             font-size: 1.15rem; 
@@ -98,9 +94,8 @@
             white-space: nowrap;
         }
 
-        /* 초기화 버튼 (데이터가 있을 때만 노출) */
         .reset-btn {
-            flex: 1; /* 부 버튼 비중 축소 */
+            flex: 1; 
             border-radius: 18px;
             font-weight: 800;
             font-size: 0.9rem;
@@ -110,7 +105,7 @@
             padding: 18px 0;
             cursor: pointer;
             transition: 0.2s;
-            display: none; /* JS 제어 */
+            display: none;
         }
 
         .start-btn:active, .reset-btn:active { 
@@ -118,7 +113,6 @@
             filter: brightness(0.9); 
         }
 
-        /* 키보드가 올라올 때 이미지 크기 조정 */
         @media (max-height: 550px) {
             .image-cover { max-height: 30vh; }
             .index-container { padding: 20px; }
@@ -142,7 +136,6 @@
 
     <script src="../lib/jquery-3.6.0.min.js"></script>
     <script>
-        // [Fridge Cookie 유틸리티]
         const FridgeCookie = {
             set: (name, val) => {
                 let d = new Date();
@@ -160,45 +153,61 @@
             const savedIdx = FridgeCookie.get('fridge_idx');
             const status = FridgeCookie.get('fridge_status');
 
-            // [Logic] 페이지 로드 시 상태 체크 및 UI 분기
+            // [핵심 수정] 무한 루프 방지 로직
+            // 1. 이미 끝난 상태면 결과 페이지로 (단, 결과 페이지에서 다시 index로 보내면 안 됨)
             if (status === 'finished') {
-                location.href = 'finish.html'; 
-            } else if (savedName) {
-                // 이름 데이터가 있으면 '이어하기' 모드
+                // 무한 루프 방지를 위해 현재 URL이 index.html인 경우만 리다이렉트
+                if(location.pathname.indexOf('index.html') > -1 || location.pathname.endsWith('/')) {
+                    // location.href = 'finish.html'; // 주석 처리하거나 필요시 활성화
+                }
+            } 
+            
+            // 2. 이름 데이터 존재 여부에 따른 UI 세팅
+            if (savedName) {
                 $('#main-btn').text('이어서 진행하기');
-                $('#reset-btn').show(); 
+                $('#reset-btn').show();
                 $('#name-input-section').hide();
             } else {
-                // 데이터가 없으면 '새 게임' 모드
                 $('#main-btn').text('시작하기');
                 $('#reset-btn').hide();
                 $('#name-input-section').show();
             }
 
-            // 시작/이어하기 버튼 클릭 이벤트
+            // [핵심 수정] 버튼 클릭 이벤트 로직 최적화
             $('#main-btn').click(function() {
                 const currentName = FridgeCookie.get('fridge_name');
+                
                 if (!currentName) {
-                    // 새 게임 시작
+                    // [새 게임] 이름 입력 필수 체크
                     const name = $('#user-name').val().trim();
                     if (!name) { 
                         alert("이름을 입력해주세요!"); 
                         return; 
                     }
+                    
+                    // 초기 데이터 세팅
                     const startTime = Date.now();
                     FridgeCookie.set('fridge_start_time', startTime);
                     FridgeCookie.set('fridge_name', name);
-                    FridgeCookie.set('fridge_idx', 0);
+                    FridgeCookie.set('fridge_idx', '0'); // 문자열로 저장 권장
                     FridgeCookie.set('fridge_status', 'playing');
+                    
+                    // 시작 페이지로 이동
                     location.href = 'question_0.html';
                 } else {
-                    // 이어하기
-                    const idx = FridgeCookie.get('fridge_idx') || 0;
-                    location.href = `question_${idx}.html`;
+                    // [이어하기] 저장된 인덱스가 있으면 해당 페이지로, 없으면 0번으로
+                    const idx = FridgeCookie.get('fridge_idx') || '0';
+                    
+                    // 만약 idx가 'finished' 같은 상태값이 섞여들어갔을 경우 예외처리
+                    if(isNaN(idx)) {
+                         location.href = 'question_0.html';
+                    } else {
+                         location.href = `question_${idx}.html`;
+                    }
                 }
             });
 
-            // 이미지 너비에 맞춰 컨트롤 영역 너비 동기화 (레이아웃 안정화)
+            // 너비 동기화
             $('#cover-image').on('load', function() {
                 const imgWidth = $(this).width();
                 if (imgWidth > 100) {
