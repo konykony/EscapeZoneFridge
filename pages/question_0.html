@@ -112,11 +112,24 @@
         // };
 
         function goToNext() {
+
+            const urlParams = new URLSearchParams(window.location.search);
+            const typeParam = (urlParams.get('type') || "").toLowerCase(); 
+            const isTestMode = typeParam === 'test';
+            var url = '';
+            debugger;
+            if(isTestMode){
+                url = 'test.html';
+            }
+
             if (typeof SetFridgeCookie === "function") {
                 SetFridgeCookie('fridge_idx', 1, 24);
                 SetFridgeCookie('fridge_status', 'playing', 24);
             }
-            location.href = 'question_1.html';
+            if(url == ''){
+                url = 'question_1.html';
+            }
+            location.href = url;
         }
     </script>
 </body>
